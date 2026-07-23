@@ -7,6 +7,19 @@ const STAGES=[['Nova','#64748b'],['Viabilidade','var(--accent)'],['Cadastro','va
 const mineAll=LEADS.filter(l=>l.vend==='Renatha Loiola');
 mineAll.forEach((l,i)=>{l.fstage=l.stat[0]==='Novo'?0:1+(i%(STAGES.length-1))});
 
+/* Metas e comissões (CFG.meta): acrescenta a meta do período ao subtítulo
+ * já existente, cruzando com a função do vendedor em Colaboradores (CFG.vend). */
+function metaTexto(){
+const vends=(typeof CFG!=='undefined'&&CFG.vend)?CFG.vend.data:[];
+const v=vends.find(x=>x.nome==='Renatha Loiola');
+const cargo=v?v.funcao:'Vendedor';
+const metas=(typeof CFG!=='undefined'&&CFG.meta)?CFG.meta.data:[];
+const m=metas.find(x=>x.cargo===cargo);
+if(!m)return '';
+const valor=m.meta==='Quantidade'?m.metaQtd:m.metaValor;
+return valor?(' · Meta '+m.periodo+': '+valor):'';
+}
+
 const cnt=s=>mineAll.filter(l=>l.stat[0]===s).length;
 document.getElementById('vkNovo').textContent=cnt('Novo');
 document.getElementById('vkContato').textContent=cnt('Em contato');
@@ -19,6 +32,8 @@ const vBoard=document.getElementById('vBoard');
 const myLeadRows=document.getElementById('myLeadRows');
 function renderVenda(){
 vBoard.innerHTML='';myLeadRows.innerHTML='';
+const subEl=document.querySelector('#venda .hl p');
+if(subEl)subEl.textContent='Leads atribuídas a você · Renatha Loiola'+metaTexto();
 document.getElementById('vkNovo').textContent=cnt('Novo');
 document.getElementById('vkContato').textContent=cnt('Em contato');
 document.getElementById('vkNeg').textContent=cnt('Em negociação');
