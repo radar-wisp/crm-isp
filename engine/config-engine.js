@@ -140,6 +140,7 @@ function tierRow(r){return '<div class="tier-row"><input class="tier-at" placeho
 const editIco='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>';
 const delIco='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>';
 const plusIco='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" style="width:16px;height:16px"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>';
+const dupIco='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
 function cfgCell(col,row,first){
 const k=cK(col),v=row[k];
 if(k==='status')return cfgBadge(v);
@@ -148,14 +149,16 @@ return '<span style="font-weight:'+(first?'600':'400')+';color:'+(first?'var(--b
 }
 function renderCfg(key){
 const c=CFG[key];const panel=document.getElementById('cfg-'+key);
+const isNf=key==='nf';
 const tcols=c.cols.filter(col=>!col.hideInTable);
-let html='<div class="card"><div class="card-head"><h3>'+c.title+'</h3><button class="btn-primary" id="new-'+key+'">'+plusIco+'Novo</button></div><div class="table-wrap"><table class="cfg-table"><thead><tr>'+tcols.map(col=>'<th>'+cL(col)+'</th>').join('')+'<th></th></tr></thead><tbody>';
-html+=c.data.map((row,i)=>'<tr>'+tcols.map((col,ci)=>'<td>'+cfgCell(col,row,ci===0)+'</td>').join('')+'<td><div class="cfg-acts"><button class="row-act" data-edit="'+i+'">'+editIco+'</button><button class="row-act del" data-del="'+i+'">'+delIco+'</button></div></td></tr>').join('');
+let html='<div class="card'+(isNf?' cfg-card-nf':'')+'"><div class="card-head"><h3>'+c.title+'</h3><button class="btn-primary" id="new-'+key+'">'+plusIco+'Novo</button></div><div class="table-wrap"><table class="cfg-table"><thead><tr>'+tcols.map(col=>'<th>'+cL(col)+'</th>').join('')+'<th></th></tr></thead><tbody>';
+html+=c.data.map((row,i)=>'<tr>'+tcols.map((col,ci)=>'<td>'+cfgCell(col,row,ci===0)+'</td>').join('')+'<td><div class="cfg-acts">'+(isNf?'<button class="row-act" data-dup="'+i+'">'+dupIco+'</button>':'')+'<button class="row-act" data-edit="'+i+'">'+editIco+'</button><button class="row-act del" data-del="'+i+'">'+delIco+'</button></div></td></tr>').join('');
 html+='</tbody></table></div></div>';
 panel.innerHTML=html;
 document.getElementById('new-'+key).addEventListener('click',()=>openCfgEdit(key,null));
 panel.querySelectorAll('[data-edit]').forEach(b=>b.addEventListener('click',()=>openCfgEdit(key,parseInt(b.dataset.edit))));
 panel.querySelectorAll('[data-del]').forEach(b=>b.addEventListener('click',()=>{if(confirm('Excluir este registro?')){c.data.splice(parseInt(b.dataset.del),1);renderCfg(key);}}));
+panel.querySelectorAll('[data-dup]').forEach(b=>b.addEventListener('click',()=>{const i=parseInt(b.dataset.dup);c.data.splice(i+1,0,JSON.parse(JSON.stringify(c.data[i])));renderCfg(key);}));
 }
 Object.keys(CFG).forEach(renderCfg);
 
@@ -214,6 +217,7 @@ cfgSaveBtn.innerHTML=cfgSaveDefaultHtml;
 }
 function openCfgEdit(key,idx){
 cfgEditKey=key;cfgEditIdx=idx;const c=CFG[key];
+cfgOverlay.querySelector('.cfgmodal').classList.toggle('cfgmodal-nf',key==='nf');
 document.getElementById('cfgModalTitle').textContent=(idx==null?'Novo registro':'Editar registro')+' — '+c.title;
 cfgMaxStep=c.cols.reduce((m,col)=>Math.max(m,col.step||1),1);
 cfgStep=1;
