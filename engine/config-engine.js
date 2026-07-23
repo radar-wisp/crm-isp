@@ -151,7 +151,7 @@ function renderCfg(key){
 const c=CFG[key];const panel=document.getElementById('cfg-'+key);
 const isNf=key==='nf';
 const tcols=c.cols.filter(col=>!col.hideInTable);
-let html='<div class="card'+(isNf?' cfg-card-nf':'')+'"><div class="card-head"><h3>'+c.title+'</h3><button class="btn-primary" id="new-'+key+'">'+plusIco+'Novo</button></div><div class="table-wrap"><table class="cfg-table"><thead><tr>'+tcols.map(col=>'<th>'+cL(col)+'</th>').join('')+'<th></th></tr></thead><tbody>';
+let html='<div class="card"><div class="card-head"><h3>'+c.title+'</h3><button class="btn-primary" id="new-'+key+'">'+plusIco+'Novo</button></div><div class="table-wrap"><table class="cfg-table"><thead><tr>'+tcols.map(col=>'<th>'+cL(col)+'</th>').join('')+'<th></th></tr></thead><tbody>';
 html+=c.data.map((row,i)=>'<tr>'+tcols.map((col,ci)=>'<td>'+cfgCell(col,row,ci===0)+'</td>').join('')+'<td><div class="cfg-acts">'+(isNf?'<button class="row-act" data-dup="'+i+'">'+dupIco+'</button>':'')+'<button class="row-act" data-edit="'+i+'">'+editIco+'</button><button class="row-act del" data-del="'+i+'">'+delIco+'</button></div></td></tr>').join('');
 html+='</tbody></table></div></div>';
 panel.innerHTML=html;
