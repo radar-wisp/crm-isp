@@ -223,7 +223,7 @@ cfgMaxStep=c.cols.reduce((m,col)=>Math.max(m,col.step||1),1);
 cfgStep=1;
 if(cfgMaxStep>1){
 const titles=c.steps||[];
-let sh='<div class="wz-steps" style="padding:0 0 16px;border-bottom:1px solid var(--surface-line);margin-bottom:14px">';
+let sh='<div class="wz-steps" style="padding:0 0 7px;border-bottom:1px solid var(--surface-line);margin-bottom:7px">';
 for(let s=1;s<=cfgMaxStep;s++){
 sh+='<div class="fstep'+(s===1?' active':'')+'" data-fstep="'+s+'"><span class="bub">'+s+'</span><div class="fl"><b>'+esc(titles[s-1]||('Etapa '+s))+'</b></div></div>';
 if(s<cfgMaxStep)sh+='<div class="fline" data-fline="'+s+'"></div>';
