@@ -20,12 +20,6 @@ const valor=m.meta==='Quantidade'?m.metaQtd:m.metaValor;
 return valor?(' · Meta '+m.periodo+': '+valor):'';
 }
 
-const cnt=s=>mineAll.filter(l=>l.stat[0]===s).length;
-document.getElementById('vkNovo').textContent=cnt('Novo');
-document.getElementById('vkContato').textContent=cnt('Em contato');
-document.getElementById('vkNeg').textContent=cnt('Em negociação');
-document.getElementById('vkConv').textContent=cnt('Convertido');
-
 const goBtn='<button class="btn-sm btn-go">Prosseguir<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></button>';
 
 const vBoard=document.getElementById('vBoard');
@@ -34,10 +28,6 @@ function renderVenda(){
 vBoard.innerHTML='';myLeadRows.innerHTML='';
 const subEl=document.querySelector('#venda .hl p');
 if(subEl)subEl.textContent='Leads atribuídas a você · Renatha Loiola'+metaTexto();
-document.getElementById('vkNovo').textContent=cnt('Novo');
-document.getElementById('vkContato').textContent=cnt('Em contato');
-document.getElementById('vkNeg').textContent=cnt('Em negociação');
-document.getElementById('vkConv').textContent=cnt('Convertido');
 STAGES.forEach((st,idx)=>{
 const items=mineAll.filter(l=>l.fstage===idx);
 const col=document.createElement('div');
