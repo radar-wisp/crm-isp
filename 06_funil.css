@@ -1,6 +1,0 @@
-Pasta reservada para ícones em arquivo (ex.: .svg individuais, favicon).
-
-Hoje todos os ícones da aplicação são SVG embutido diretamente no HTML de
-cada tela (ver modules/*.html e shared/modals.html). Esta pasta existe
-para seguir a estrutura profissional solicitada e para receber ícones
-extraídos como arquivos independentes no futuro, se necessário.
