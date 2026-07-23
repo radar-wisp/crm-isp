@@ -16,16 +16,16 @@ vend:{title:'Colaboradores',cols:[
 {nome:'João Prado',funcao:'Atendente',limitar:'Sim',planos:['Combos'],status:'Inativo'}]},
 plan:{title:'Planos',cols:[
 {key:'plano',label:'Plano',type:'text'},
-{key:'tecnologia',label:'Tecnologia',type:'radio',options:['Fibra','Wireless']},
+{key:'tecnologia',label:'Tecnologia',type:'radio',options:['Fibra','Wireless'],hideInTable:true},
 {key:'tipo',label:'Tipo',type:'radio',options:['Internet','Streaming','HUB SVA','Transporte','Link dedicado']},
-{key:'veldown',label:'Velocidade down',type:'text'},
-{key:'velup',label:'Velocidade up',type:'text'},
-{key:'mensalidades',label:'Mensalidades',type:'text'},
+{key:'veldown',label:'Velocidade down',type:'text',hideInTable:true},
+{key:'velup',label:'Velocidade up',type:'text',hideInTable:true},
+{key:'mensalidades',label:'Mensalidades',type:'text',hideInTable:true},
 {key:'valor',label:'Valor',type:'text'},
 {key:'limarea',label:'Limitação de áreas',type:'radio',options:['Sim','Não']},
-{key:'selarea',label:'Selecionar áreas',type:'checkdrop',source:'area',showIf:{key:'limarea',eq:'Sim'}},
+{key:'selarea',label:'Selecionar áreas',type:'checkdrop',source:'area',showIf:{key:'limarea',eq:'Sim'},hideInTable:true},
 {key:'vendaapp',label:'Venda app CRM',type:'radio',options:['Sim','Não']},
-{key:'fiscal',label:'Composição fiscal',type:'text'},
+{key:'fiscal',label:'Composição fiscal',type:'text',hideInTable:true},
 {key:'status',label:'Status',type:'radio',options:['Ativo','Inativo']}],data:[
 {plano:'Fibra 300',tecnologia:'Fibra',tipo:'Internet',veldown:'300 Mega',velup:'150 Mega',mensalidades:'12x',valor:'R$ 79,90',limarea:'Sim',selarea:['Setor Central'],vendaapp:'Sim',fiscal:'SCM',status:'Ativo'},
 {plano:'Fibra 500',tecnologia:'Fibra',tipo:'Internet',veldown:'500 Mega',velup:'250 Mega',mensalidades:'12x',valor:'R$ 99,90',limarea:'Sim',selarea:['Setor Central','Anápolis'],vendaapp:'Sim',fiscal:'SCM',status:'Ativo'},
@@ -65,8 +65,8 @@ pagamento:{title:'Formas de pagamento',cols:[
 {key:'valor',label:'Valor',type:'text'},
 {key:'cobranca',label:'Tipo',type:'radio',options:['À vista','Parcelado']},
 {key:'limitar',label:'Limitação de planos',type:'radio',options:['Sim','Não']},
-{key:'selplanos',label:'Selecionar planos',type:'checkdrop',source:'plan',showIf:{key:'limitar',eq:'Sim'}},
-{key:'derivacao',label:'Plano de composição de derivação',type:'text'}],data:[
+{key:'selplanos',label:'Selecionar planos',type:'checkdrop',source:'plan',showIf:{key:'limitar',eq:'Sim'},hideInTable:true},
+{key:'derivacao',label:'Plano de composição de derivação',type:'text',hideInTable:true}],data:[
 {tipo:'Adesão',descricao:'Taxa de adesão',parcelas:'1x',valor:'R$ 99,90',cobranca:'À vista',limitar:'Não',selplanos:[],derivacao:''},
 {tipo:'Mensalidade',descricao:'Mensalidade recorrente',parcelas:'até 12x',valor:'R$ 99,90',cobranca:'Parcelado',limitar:'Sim',selplanos:['Fibra 500'],derivacao:'SCM 60%'},
 {tipo:'Mensalidade',descricao:'Serviço SVA',parcelas:'Mensal',valor:'R$ 19,90',cobranca:'À vista',limitar:'Sim',selplanos:['Radar Play'],derivacao:'SVA 100%'}]},
@@ -85,7 +85,7 @@ camp:{title:'Campanhas promocionais',cols:[
 {key:'descVal',label:'Valor',type:'text',showIf:{key:'tipodesc',eq:'Valor'}},
 {key:'mensalidades',label:'Quantidade de mensalidades com desconto',type:'text'},
 {key:'limitar',label:'Limitação de planos',type:'radio',options:['Sim','Não']},
-{key:'selplanos',label:'Selecionar planos',type:'checkdrop',source:'plan',showIf:{key:'limitar',eq:'Sim'}}],data:[
+{key:'selplanos',label:'Selecionar planos',type:'checkdrop',source:'plan',showIf:{key:'limitar',eq:'Sim'},hideInTable:true}],data:[
 {campanha:'Fibra 500 · Julho',dtini:'2026-07-01',dtfim:'2026-07-31',tipodesc:'Porcentagem',descPct:'50%',descVal:'',mensalidades:'3',limitar:'Sim',selplanos:['Fibra 500']},
 {campanha:'Black Friday Internet',dtini:'2026-11-20',dtfim:'2026-11-30',tipodesc:'Porcentagem',descPct:'50%',descVal:'',mensalidades:'3',limitar:'Não',selplanos:[]},
 {campanha:'Indique e Ganhe',dtini:'2026-01-01',dtfim:'2026-12-31',tipodesc:'Valor',descPct:'',descVal:'R$ 50,00',mensalidades:'1',limitar:'Sim',selplanos:['Fibra 300','Fibra 500']}]}
@@ -107,8 +107,9 @@ return '<span style="font-weight:'+(first?'600':'400')+';color:'+(first?'var(--b
 }
 function renderCfg(key){
 const c=CFG[key];const panel=document.getElementById('cfg-'+key);
-let html='<div class="card"><div class="card-head"><h3>'+c.title+'</h3><button class="btn-primary" id="new-'+key+'">'+plusIco+'Novo</button></div><div class="table-wrap"><table class="cfg-table"><thead><tr>'+c.cols.map(col=>'<th>'+cL(col)+'</th>').join('')+'<th></th></tr></thead><tbody>';
-html+=c.data.map((row,i)=>'<tr>'+c.cols.map((col,ci)=>'<td>'+cfgCell(col,row,ci===0)+'</td>').join('')+'<td><div class="cfg-acts"><button class="row-act" data-edit="'+i+'">'+editIco+'</button><button class="row-act del" data-del="'+i+'">'+delIco+'</button></div></td></tr>').join('');
+const tcols=c.cols.filter(col=>!col.hideInTable);
+let html='<div class="card"><div class="card-head"><h3>'+c.title+'</h3><button class="btn-primary" id="new-'+key+'">'+plusIco+'Novo</button></div><div class="table-wrap"><table class="cfg-table"><thead><tr>'+tcols.map(col=>'<th>'+cL(col)+'</th>').join('')+'<th></th></tr></thead><tbody>';
+html+=c.data.map((row,i)=>'<tr>'+tcols.map((col,ci)=>'<td>'+cfgCell(col,row,ci===0)+'</td>').join('')+'<td><div class="cfg-acts"><button class="row-act" data-edit="'+i+'">'+editIco+'</button><button class="row-act del" data-del="'+i+'">'+delIco+'</button></div></td></tr>').join('');
 html+='</tbody></table></div></div>';
 panel.innerHTML=html;
 document.getElementById('new-'+key).addEventListener('click',()=>openCfgEdit(key,null));
