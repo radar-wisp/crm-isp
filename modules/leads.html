@@ -1,0 +1,68 @@
+<section class="view" id="leads">
+<div class="page-head">
+<div class="hl">
+<h2>Leads</h2>
+<p>Captação e qualificação de oportunidades</p>
+</div>
+<div class="actions">
+<button class="btn-primary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Novo Lead</button>
+</div>
+</div>
+
+<div class="toolbar">
+<div class="search-row">
+<div class="field-search">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+<input type="text" placeholder="Buscar por nome, telefone ou e-mail...">
+</div>
+<button class="btn-ghost"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>Limpar filtros</button>
+</div>
+<div class="filters">
+<div class="filter">
+<label>Origem da Lead</label>
+<div class="select"><select><option>Todas as origens</option><option>Anúncio pago</option><option>Orgânico</option><option>Indicação</option><option>Telemarketing</option><option>Site institucional</option></select><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg></div>
+</div>
+<div class="filter">
+<label>Plataforma</label>
+<div class="select"><select><option>Todas</option><option>Meta Ads</option><option>Google Ads</option><option>Instagram</option><option>WhatsApp</option><option>Site</option></select><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg></div>
+</div>
+<div class="filter">
+<label>Campanha</label>
+<div class="select"><select><option>Todas as campanhas</option><option>Fibra 500 · Julho</option><option>Black Friday Internet</option><option>Combo Empresarial</option><option>Indique e Ganhe</option></select><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg></div>
+</div>
+<div class="filter">
+<label>Status</label>
+<div class="select"><select><option>Todos os status</option><option>Novo</option><option>Em contato</option><option>Em negociação</option><option>Convertido</option><option>Perdido</option></select><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg></div>
+</div>
+</div>
+</div>
+
+<div class="card">
+<div class="card-head">
+<h3>Lista de Leads</h3>
+<div class="list-tools">
+<span class="count"><b id="leadCount">0</b> leads encontrados</span>
+<div class="perpage">
+<label>Por página</label>
+<div class="select sm"><select id="perPage"><option value="25">25</option><option value="50">50</option><option value="75">75</option><option value="100">100</option></select><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg></div>
+</div>
+</div>
+</div>
+<div class="table-wrap">
+<table>
+<thead>
+<tr><th>Lead</th><th>Origem</th><th>Plataforma</th><th>Campanha</th><th>Status</th><th>Vendedor</th><th>Data</th><th></th></tr>
+</thead>
+<tbody id="leadRows"></tbody>
+</table>
+</div>
+<div class="pager">
+<span class="pager-info" id="pagerInfo"></span>
+<div class="pager-ctrl">
+<button class="pg-btn" id="pgPrev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
+<div class="pg-nums" id="pgNums"></div>
+<button class="pg-btn" id="pgNext"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></button>
+</div>
+</div>
+</div>
+</section>
