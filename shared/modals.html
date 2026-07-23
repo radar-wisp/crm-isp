@@ -211,9 +211,8 @@
 <div class="cfg-form" id="funilForm">
 <div class="fg"><label>Nome do Funil</label><input type="text" id="funNome" placeholder="Ex.: Funil Residencial"></div>
 <div class="fg"><label>Descrição</label><input type="text" id="funDescricao" placeholder="Ex.: Fluxo padrão para vendas residenciais"></div>
-<div class="cfg-field"><label class="cfg-flabel">Tipo</label><div class="radio-group" id="funTipoRG"><div class="radio-opt sel" data-val="Pessoa Física"><span class="rd"></span>Pessoa Física</div><div class="radio-opt" data-val="Pessoa Jurídica"><span class="rd"></span>Pessoa Jurídica</div><div class="radio-opt" data-val="Retenção"><span class="rd"></span>Retenção</div><div class="radio-opt" data-val="Pós-venda"><span class="rd"></span>Pós-venda</div></div></div>
+<div class="cfg-field"><label class="cfg-flabel">Tipo</label><div class="select"><select id="funTipo"><option value="Pessoa Física">Pessoa Física</option><option value="Pessoa Jurídica">Pessoa Jurídica</option><option value="Retenção">Retenção</option><option value="Pós-venda">Pós-venda</option></select><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg></div></div>
 <div class="cfg-field"><label class="cfg-flabel">Status</label><div class="radio-group" id="funStatusRG"><div class="radio-opt sel" data-val="Ativo"><span class="rd"></span>Ativo</div><div class="radio-opt" data-val="Inativo"><span class="rd"></span>Inativo</div></div></div>
-<div class="cfg-field"><label class="cfg-flabel">Visualização padrão</label><div class="radio-group" id="funVisRG"><div class="radio-opt sel" data-val="Kanban"><span class="rd"></span>Kanban</div><div class="radio-opt" data-val="Lista"><span class="rd"></span>Lista</div></div></div>
 </div>
 <div class="cfg-modal-foot">
 <button class="btn-ghost" id="funilCancel">Cancelar</button>
@@ -257,7 +256,6 @@
 <div class="fg"><label>Nome</label><input type="text" id="tipNome" placeholder="Ex.: Comercial"></div>
 <div class="fg"><label>Descrição</label><input type="text" id="tipDescricao" placeholder="Ex.: Etapas relacionadas ao contato e negociação comercial."></div>
 <div class="fg"><label>Cor</label><input type="color" id="tipCor" value="#3b82f6" style="width:100%;height:42px;border:1px solid var(--surface-line);border-radius:10px;padding:3px;background:#fbfcfe;cursor:pointer"></div>
-<div class="fg"><label>Ícone <span class="opt">(emoji)</span></label><input type="text" id="tipIcone" placeholder="Ex.: " maxlength="4"></div>
 <div class="fg"><label>Objetivo</label><input type="text" id="tipObjetivo" placeholder="Ex.: Conduzir o contato e a negociação comercial com o cliente."></div>
 <div class="fg"><label>Exemplos de utilização <span class="opt">(separados por vírgula)</span></label><input type="text" id="tipExemplos" placeholder="Ex.: Novo Lead, Contato, Negociação"></div>
 <div class="cfg-field"><label class="cfg-flabel">Status</label><div class="radio-group" id="tipStatusRG"><div class="radio-opt sel" data-val="Ativo"><span class="rd"></span>Ativo</div><div class="radio-opt" data-val="Inativo"><span class="rd"></span>Inativo</div></div></div>
