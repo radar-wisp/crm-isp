@@ -124,6 +124,21 @@ paEditMode=null;renderProxAcaoCard();
 }
 renderProxAcaoCard();
 
+/* ===== Funil Atual (lista igual a Configurações > Funis > Motor do Funil > Funis) ===== */
+let vFunilSelIdx=0;
+const vFunilSelect=document.getElementById('vFunilSelect');
+function populateVendaFunilSelect(){
+if(!vFunilSelect)return;
+const funis=(typeof FUNIS!=='undefined')?FUNIS:[];
+if(!funis.length)return;
+if(vFunilSelIdx>=funis.length)vFunilSelIdx=0;
+vFunilSelect.innerHTML=funis.map((f,i)=>'<option value="'+i+'"'+(i===vFunilSelIdx?' selected':'')+'>'+esc(f.nome)+'</option>').join('');
+}
+populateVendaFunilSelect();
+if(vFunilSelect)vFunilSelect.addEventListener('change',()=>{vFunilSelIdx=parseInt(vFunilSelect.value);});
+const vNavItem=document.querySelector('.nav-item[data-view="venda"]');
+if(vNavItem)vNavItem.addEventListener('click',populateVendaFunilSelect);
+
 const vTabKanban=document.getElementById('vTabKanban');
 const vTabList=document.getElementById('vTabList');
 const vViewKanban=document.getElementById('vViewKanban');
