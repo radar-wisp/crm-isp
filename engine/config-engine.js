@@ -195,3 +195,8 @@ document.getElementById('cfgCancel').addEventListener('click',closeCfg);
 document.getElementById('cfgCloseBtn').addEventListener('click',closeCfg);
 cfgOverlay.addEventListener('click',e=>{if(e.target===cfgOverlay)closeCfg()});
 
+/* config-engine.js carrega depois de Fluxo da Venda na ordem de scripts;
+ * assim que CFG fica disponível, atualiza a tela de venda (meta no
+ * subtítulo, KPIs) para refletir os dados de Configurações de imediato. */
+if(typeof renderVenda==='function')renderVenda();
+
