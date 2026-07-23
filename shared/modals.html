@@ -1,0 +1,290 @@
+</div>
+</div>
+
+<div class="modal-overlay" id="wzOverlay">
+<div class="modal">
+<div class="modal-top">
+<div class="lead-cli"><div class="av" id="wzAv" style="background:linear-gradient(135deg,#0ea5b7,#14c8dd)">--</div><div><b id="wzName">Lead</b><small id="wzPhone">--</small></div></div>
+<button class="modal-close" id="wzClose"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+</div>
+<div class="wz-steps">
+<div class="fstep active" id="wzs1"><span class="bub">1</span><div class="fl"><b>Consultar Cobertura</b></div></div>
+<div class="fline" id="wzl1"></div>
+<div class="fstep" id="wzs2"><span class="bub">2</span><div class="fl"><b>Dados do Cliente</b></div></div>
+<div class="fline" id="wzl2"></div>
+<div class="fstep" id="wzs3"><span class="bub">3</span><div class="fl"><b>Plano e Contrato</b></div></div>
+<div class="fline" id="wzl3"></div>
+<div class="fstep" id="wzs4"><span class="bub">4</span><div class="fl"><b>Assinatura</b></div></div>
+<div class="fline" id="wzl4"></div>
+<div class="fstep" id="wzs5"><span class="bub">5</span><div class="fl"><b>Concluir Venda</b></div></div>
+</div>
+
+<div class="wz-main">
+<div class="wz-body">
+
+<div class="wstep on" data-step="1">
+<div class="wz-title">Consultar Cobertura</div>
+<div class="wz-sub">Verifique rapidamente se existe viabilidade no endereço do cliente</div>
+<div class="viab-tools">
+<div class="fg" style="max-width:160px"><label>CEP</label><input type="text" id="viabCep" placeholder="74000-000"></div>
+<div class="fg" style="max-width:160px"><label>Cidade</label><input type="text" id="viabCidade" placeholder="Cidade"></div>
+<div class="fg" style="max-width:160px"><label>Bairro</label><input type="text" id="viabBairro" placeholder="Bairro"></div>
+<div class="fg" style="max-width:200px"><label>Logradouro</label><input type="text" id="viabLogradouro" placeholder="Rua, avenida..."></div>
+<div class="fg" style="max-width:120px"><label>Número</label><input type="text" id="viabNum" placeholder="Nº"></div>
+<div class="fg" style="max-width:200px"><label>Complemento (opcional)</label><input type="text" id="viabCompl" placeholder="Apto, bloco..."></div>
+<button class="btn-primary" id="btnViab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>Consultar Cobertura</button>
+</div>
+<div id="viabResult" style="display:none">
+<div id="viabBox"></div>
+<div class="end-actions" id="viabEnd" style="display:none">
+<button class="btn-ghost" id="btnEncerrar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Encerrar lead</button>
+<button class="btn-primary" id="btnAgendar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>Agendar retorno</button>
+</div>
+</div>
+</div>
+
+<div class="wstep" data-step="2">
+<div class="wz-title">Dados do Cliente</div>
+<div class="wz-sub">Informe apenas o essencial para seguir com a venda</div>
+<div class="radio-group" data-radio="tipoCadastro" style="margin-bottom:12px">
+<div class="radio-opt sel" data-val="cpf"><span class="rd"></span>CPF</div>
+<div class="radio-opt" data-val="cnpj"><span class="rd"></span>CNPJ</div>
+</div>
+<div class="fgrid2">
+<div class="fg c3"><label>Nome</label><input type="text" id="cadNome" placeholder="Nome completo"></div>
+<div class="fg c3"><label id="cadCpfLabel">CPF</label><div class="consulta-row" style="margin-bottom:0"><input type="text" id="cadCpf" placeholder="000.000.000-00" style="flex:1"><button class="btn-ghost" id="btnConsultaCpf" style="height:34px;font-size:12px;padding:0 12px;flex-shrink:0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="width:13px;height:13px"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>Consultar</button></div></div>
+<div class="fg c3"><label>Whatsapp</label><input type="text" id="cadTel1" placeholder="(00) 00000-0000"></div>
+<div class="fg c3"><label>E-mail</label><input type="text" id="cadEmail" placeholder="cliente@email.com"></div>
+</div>
+<span class="consulta-msg" id="consultaMsg" style="display:block;margin:-4px 0 12px"></span>
+<button class="btn-ghost" id="btnAbrirCadastro" type="button" style="display:none;height:30px;font-size:12px;padding:0 12px;margin:-4px 0 12px;gap:6px">Abrir cadastro existente</button>
+<button class="btn-ghost" id="btnMaisInfo" style="height:36px;font-size:12.5px;padding:0 13px;gap:6px;margin-bottom:4px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="maisInfoIco" style="width:13px;height:13px"><polyline points="6 9 12 15 18 9"/></svg>Mais Informações</button>
+<button class="btn-ghost" id="btnEndereco" style="height:36px;font-size:12.5px;padding:0 13px;gap:6px;margin-bottom:4px;margin-left:8px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="enderecoIco" style="width:13px;height:13px"><polyline points="6 9 12 15 18 9"/></svg>Endereço</button>
+<div class="fgrid2" id="maisInfoBlock" style="display:none;margin-top:12px">
+<div class="fg c3"><label id="lblNomeSocial">Nome Social</label><input type="text" id="cadNomeSocial" placeholder="Nome social (opcional)"></div>
+<div class="fg c3"><label id="lblNasc">Data de nascimento</label><input type="date" id="cadNasc"></div>
+<div class="fg c3"><label>Telefone Secundário</label><input type="text" id="cadTel2" placeholder="(00) 00000-0000"></div>
+<div class="fg c3"><label>Telefone Comercial</label><input type="text" id="cadTel3" placeholder="(00) 00000-0000"></div>
+<div class="fg c3"><label id="lblPai">Pai</label><input type="text" id="cadPai" placeholder="Nome do pai"></div>
+<div class="fg c3"><label id="lblMae">Mãe</label><input type="text" id="cadMae" placeholder="Nome da mãe"></div>
+</div>
+<div class="fgrid2" id="enderecoBlock" style="display:none;margin-top:12px">
+<div class="fg c3"><label>CEP</label><input type="text" id="cadCep" placeholder="00000-000"></div>
+<div class="fg c3"><label>UF</label><input type="text" id="cadUf" placeholder="UF"></div>
+<div class="fg c3"><label>Cidade</label><input type="text" id="cadCidade" placeholder="Cidade"></div>
+<div class="fg c3"><label>Bairro</label><input type="text" id="cadBairro" placeholder="Bairro"></div>
+<div class="fg c3"><label>Logradouro</label><input type="text" id="cadLogradouro" placeholder="Rua, avenida..."></div>
+<div class="fg c3"><label>Número</label><input type="text" id="cadNumero" placeholder="Nº"></div>
+<div class="fg c3"><label>Complemento</label><input type="text" id="cadComplemento" placeholder="Apto, bloco..."></div>
+<div class="fg c3"><label>Referência</label><input type="text" id="cadReferencia" placeholder="Ponto de referência"></div>
+</div>
+</div>
+
+<div class="wstep" data-step="3">
+<div class="wz-title">Plano e Contrato</div>
+<div class="wz-sub">Selecione o plano, o contrato e a forma de envio</div>
+<div class="radio-group" data-radio="categoria" style="margin-bottom:14px">
+<div class="radio-opt sel" data-val="fibra"><span class="rd"></span>Planos fibra</div>
+<div class="radio-opt" data-val="wireless"><span class="rd"></span>Planos wireless</div>
+<div class="radio-opt" data-val="streaming"><span class="rd"></span>Streaming</div>
+<div class="radio-opt" data-val="gamer"><span class="rd"></span>Gamer</div>
+</div>
+
+<div class="prod-block" id="planoBlock">
+<div class="pb-label">Plano</div>
+<div class="select"><select id="planoSelect"></select><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg></div>
+</div>
+
+<div class="opt-block">
+<div class="ob-label">Contrato</div>
+<div class="radio-group" data-radio="contrato">
+<div class="radio-opt sel" data-val="emprestimo"><span class="rd"></span>Empréstimo</div>
+<div class="radio-opt" data-val="comodato"><span class="rd"></span>Comodato</div>
+</div>
+</div>
+<div class="opt-block" style="margin-top:12px">
+<div class="ob-label">Forma de envio</div>
+<div class="radio-group" data-radio="envio">
+<div class="radio-opt sel" data-val="whatsapp"><span class="rd"></span>WhatsApp</div>
+<div class="radio-opt" data-val="email"><span class="rd"></span>E-mail</div>
+<div class="radio-opt" data-val="link"><span class="rd"></span>Gerar link</div>
+</div>
+</div>
+
+<button class="btn-primary" id="btnEnviarContrato" style="margin-top:6px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>Enviar Contrato</button>
+<div id="envioMsg" class="result-box res-ok" style="display:none;margin-top:14px"><span class="ri"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span><div><b>Contrato enviado com sucesso.</b></div></div>
+</div>
+
+<div class="wstep" data-step="4">
+<div class="wz-title">Assinatura</div>
+<div class="wz-sub">Acompanhe o status da assinatura do contrato</div>
+<div class="result-box" id="assinBox" style="background:#f1f4f8;margin-bottom:16px">
+<span class="ri" id="assinIco" style="background:#e2e7ee;color:#68758a"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span>
+<div><b id="assinTitle">Aguardando assinatura</b><small id="assinUltimo">Nenhum envio realizado ainda</small></div>
+</div>
+<div class="end-actions">
+<button class="btn-ghost" id="btnReenviar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>Reenviar</button>
+</div>
+<p style="font-size:12px;color:#8a97ab;margin-top:16px">Clique no status acima para simular a confirmação da assinatura.</p>
+</div>
+
+<div class="wstep" data-step="5">
+<div class="final-head">
+<div class="fchk sm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div>
+<div>
+<h3>Concluir Venda</h3>
+<span class="status-pill">Pronto para finalizar</span>
+<span class="status-pill pending" style="margin-left:8px">Tempo da Venda: 04:37</span>
+</div>
+</div>
+<div class="resumo" style="margin-bottom:16px">
+<div class="resumo-title">Resumo da venda</div>
+<ul class="resumo-list" id="resumoList"></ul>
+</div>
+<div class="resumo">
+<div class="resumo-title">Checklist final</div>
+<ul class="resumo-list" id="checklistList">
+<li class="check-item" data-ck="cliente"><span class="cci"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>Criar Cliente</li>
+<li class="check-item" data-ck="contrato"><span class="cci"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>Criar Contrato</li>
+<li class="check-item" data-ck="cobranca"><span class="cci"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>Gerar Cobrança</li>
+<li class="check-item" data-ck="os"><span class="cci"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>Criar Ordem de Serviço</li>
+<li class="check-item" data-ck="instalacao"><span class="cci"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>Enviar para Instalação</li>
+</ul>
+</div>
+</div>
+
+</div>
+<div class="wz-sidebar" id="wzSidebar">
+<h4>Resumo da Venda</h4>
+<div class="wz-sum-item"><span class="lbl">Cliente</span><span class="val muted" id="sumCliente">—</span></div>
+<div class="wz-sum-item"><span class="lbl">Endereço</span><span class="val muted" id="sumEndereco">—</span></div>
+<div class="wz-sum-item"><span class="lbl">Cobertura</span><span class="val muted" id="sumCobertura">—</span></div>
+<div class="wz-sum-item"><span class="lbl">Plano</span><span class="val muted" id="sumPlano">—</span></div>
+<div class="wz-sum-item"><span class="lbl">Contrato</span><span class="val muted" id="sumContrato">—</span></div>
+<div class="wz-sum-item"><span class="lbl">Assinatura</span><span class="val muted" id="sumAssinatura">—</span></div>
+<div class="wz-sum-item"><span class="lbl">Vendedor</span><span class="val" id="sumVendedor">—</span></div>
+<h4 style="margin-top:4px">Próxima Ação</h4>
+<div class="wz-sum-item"><span class="val" id="wzProxAcaoTxt">Nenhuma ação pendente.</span></div>
+</div>
+</div>
+
+<div class="wz-foot">
+<button class="btn-ghost" id="wzBack"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px"><polyline points="15 18 9 12 15 6"/></svg>Voltar</button>
+<button class="btn-ghost" id="wzSave"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>Salvar etapa</button>
+<button class="btn-ghost btn-loss" id="wzLoss"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>Perda</button>
+<button class="btn-primary" id="wzNext" disabled>Continuar<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px"><polyline points="9 18 15 12 9 6"/></svg></button>
+</div>
+</div>
+</div>
+
+<div class="modal-overlay" id="cfgOverlay">
+<div class="cfgmodal">
+<div class="modal-top"><b id="cfgModalTitle" style="font-size:15px;color:var(--body-strong)">Registro</b><button class="modal-close" id="cfgCloseBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+<div class="cfg-form" id="cfgForm"></div>
+<div class="cfg-modal-foot">
+<button class="btn-ghost" id="cfgCancel">Cancelar</button>
+<button class="btn-primary" id="cfgSave"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>Salvar</button>
+</div>
+</div>
+</div>
+
+<div class="modal-overlay" id="dashOverlay">
+<div class="cfgmodal">
+<div class="modal-top"><b style="font-size:15px;color:var(--body-strong)">Novo item do dashboard</b><button class="modal-close" id="dashCloseBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+<div class="cfg-form" id="dashForm">
+<div class="cfg-field"><label class="cfg-flabel">Tipo do item</label><div class="radio-group db-rg" data-k="itemtype"><div class="radio-opt" data-val="card"><span class="rd"></span>Card</div><div class="radio-opt sel" data-val="chart"><span class="rd"></span>Gráfico</div></div></div>
+<div class="fg"><label>Título</label><input type="text" id="dbTitle" placeholder="Ex.: Venda diária por vendedor"></div>
+<div class="cfg-field" data-dbfield="card"><label class="cfg-flabel">Métrica</label><div class="radio-group db-rg" data-k="cardmetric"><div class="radio-opt sel" data-val="vendas"><span class="rd"></span>Vendas</div><div class="radio-opt" data-val="valor"><span class="rd"></span>Valor</div><div class="radio-opt" data-val="negociacao"><span class="rd"></span>Negociação</div><div class="radio-opt" data-val="perda"><span class="rd"></span>Perda</div></div></div>
+<div class="cfg-field" data-dbfield="chart"><label class="cfg-flabel">Tipo de gráfico</label><div class="radio-group db-rg" data-k="charttype"><div class="radio-opt sel" data-val="bars"><span class="rd"></span>Barras</div><div class="radio-opt" data-val="pie"><span class="rd"></span>Pizza</div><div class="radio-opt" data-val="line"><span class="rd"></span>Linha</div></div></div>
+<div class="cfg-field" data-dbfield="chart"><label class="cfg-flabel">Dimensão</label><div class="radio-group db-rg" data-k="dimension"><div class="radio-opt sel" data-val="vendedor"><span class="rd"></span>Vendedor</div><div class="radio-opt" data-val="area"><span class="rd"></span>Área</div><div class="radio-opt" data-val="plano"><span class="rd"></span>Plano</div><div class="radio-opt" data-val="periodo"><span class="rd"></span>Período</div></div></div>
+<div class="cfg-field" data-dbfield="chart"><label class="cfg-flabel">Métrica</label><div class="radio-group db-rg" data-k="chartmetric"><div class="radio-opt sel" data-val="quantidade"><span class="rd"></span>Quantidade</div><div class="radio-opt" data-val="valor"><span class="rd"></span>Valor</div></div></div>
+<div class="cfg-field"><label class="cfg-flabel">Período</label><div class="radio-group db-rg" data-k="periodo"><div class="radio-opt sel" data-val="Diário"><span class="rd"></span>Diário</div><div class="radio-opt" data-val="Semanal"><span class="rd"></span>Semanal</div><div class="radio-opt" data-val="Mensal"><span class="rd"></span>Mensal</div></div></div>
+</div>
+<div class="cfg-modal-foot"><button class="btn-ghost" id="dashCancel">Cancelar</button><button class="btn-primary" id="dashSave"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" style="width:15px;height:15px"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Adicionar</button></div>
+</div>
+</div>
+
+<div class="modal-overlay" id="funilOverlay">
+<div class="cfgmodal">
+<div class="modal-top"><b id="funilModalTitle" style="font-size:15px;color:var(--body-strong)">Novo Funil</b><button class="modal-close" id="funilCloseBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+<div class="cfg-form" id="funilForm">
+<div class="fg"><label>Nome do Funil</label><input type="text" id="funNome" placeholder="Ex.: Funil Residencial"></div>
+<div class="fg"><label>Descrição</label><input type="text" id="funDescricao" placeholder="Ex.: Fluxo padrão para vendas residenciais"></div>
+<div class="cfg-field"><label class="cfg-flabel">Tipo</label><div class="radio-group" id="funTipoRG"><div class="radio-opt sel" data-val="Pessoa Física"><span class="rd"></span>Pessoa Física</div><div class="radio-opt" data-val="Pessoa Jurídica"><span class="rd"></span>Pessoa Jurídica</div><div class="radio-opt" data-val="Retenção"><span class="rd"></span>Retenção</div><div class="radio-opt" data-val="Pós-venda"><span class="rd"></span>Pós-venda</div></div></div>
+<div class="cfg-field"><label class="cfg-flabel">Status</label><div class="radio-group" id="funStatusRG"><div class="radio-opt sel" data-val="Ativo"><span class="rd"></span>Ativo</div><div class="radio-opt" data-val="Inativo"><span class="rd"></span>Inativo</div></div></div>
+<div class="cfg-field"><label class="cfg-flabel">Visualização padrão</label><div class="radio-group" id="funVisRG"><div class="radio-opt sel" data-val="Kanban"><span class="rd"></span>Kanban</div><div class="radio-opt" data-val="Lista"><span class="rd"></span>Lista</div></div></div>
+</div>
+<div class="cfg-modal-foot">
+<button class="btn-ghost" id="funilCancel">Cancelar</button>
+<button class="btn-primary" id="funilSave"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>Salvar</button>
+</div>
+</div>
+</div>
+
+<div class="modal-overlay" id="etapaOverlay">
+<div class="cfgmodal" style="width:760px">
+<div class="modal-top"><b id="etapaModalTitle" style="font-size:15px;color:var(--body-strong)">Nova Etapa</b><button class="modal-close" id="etapaCloseBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+<div style="display:flex;flex:1;min-height:0;overflow:hidden">
+<div class="cfg-form" id="etapaForm" style="flex:1;min-width:0">
+<div class="fg"><label>Nome</label><input type="text" id="etpNome" placeholder="Ex.: Qualificado"></div>
+<div class="cfg-field"><label class="cfg-flabel">Tipo da Etapa</label><div class="select"><select id="etpTipo"></select><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg></div></div>
+<div class="fg"><label>Cor</label><input type="color" id="etpCor" value="#0ea5b7" style="width:100%;height:42px;border:1px solid var(--surface-line);border-radius:10px;padding:3px;background:#fbfcfe;cursor:pointer"></div>
+<div class="cfg-field"><label class="cfg-flabel">Ícone</label><div class="radio-group" id="etpIconeRG"><div class="radio-opt sel" data-val="user-plus"><span class="rd"></span>Lead</div><div class="radio-opt" data-val="phone"><span class="rd"></span>Contato</div><div class="radio-opt" data-val="check"><span class="rd"></span>Check</div><div class="radio-opt" data-val="map-pin"><span class="rd"></span>Local</div><div class="radio-opt" data-val="file-text"><span class="rd"></span>Documento</div><div class="radio-opt" data-val="flag"><span class="rd"></span>Conclusão</div></div></div>
+<div class="fg"><label>Descrição</label><input type="text" id="etpDescricao" placeholder="Ex.: Lead qualificado para negociação"></div>
+<div class="fg"><label>Prazo máximo (SLA)</label><input type="text" id="etpSla" placeholder="Ex.: 2 dias"></div>
+<div class="cfg-field"><label class="cfg-flabel">Etapa obrigatória</label><div class="radio-group" id="etpObrigRG"><div class="radio-opt sel" data-val="Sim"><span class="rd"></span>Sim</div><div class="radio-opt" data-val="Não"><span class="rd"></span>Não</div></div></div>
+<div class="cfg-field"><label class="cfg-flabel">Etapa ativa</label><div class="radio-group" id="etpAtivaRG"><div class="radio-opt sel" data-val="Sim"><span class="rd"></span>Sim</div><div class="radio-opt" data-val="Não"><span class="rd"></span>Não</div></div></div>
+<div class="cfg-field"><label class="cfg-flabel">Permitir avançar para qualquer etapa</label><div class="radio-group" id="etpAvancarRG"><div class="radio-opt" data-val="Sim"><span class="rd"></span>Sim</div><div class="radio-opt sel" data-val="Não"><span class="rd"></span>Não</div></div></div>
+<div class="cfg-field"><label class="cfg-flabel">Campos obrigatórios para concluir a etapa</label><div class="cfg-checks" id="etpCamposCk"><label class="cfg-check-item" data-val="Nome"><span class="cbox"></span>Nome</label><label class="cfg-check-item" data-val="CPF"><span class="cbox"></span>CPF</label><label class="cfg-check-item" data-val="Telefone"><span class="cbox"></span>Telefone</label><label class="cfg-check-item" data-val="Endereço"><span class="cbox"></span>Endereço</label><label class="cfg-check-item" data-val="Plano"><span class="cbox"></span>Plano</label><label class="cfg-check-item" data-val="Contrato"><span class="cbox"></span>Contrato</label><label class="cfg-check-item" data-val="Assinatura"><span class="cbox"></span>Assinatura</label></div></div>
+</div>
+<div id="tipoResumoPanel" style="width:230px;flex-shrink:0;border-left:1px solid var(--surface-line);padding:18px 18px;overflow-y:auto;background:#fafbfd">
+<div style="font-size:11.5px;font-weight:700;color:#68758a;text-transform:uppercase;letter-spacing:.4px;margin-bottom:14px">Resumo do Tipo</div>
+<div id="tipoResumoContent"></div>
+</div>
+</div>
+<div class="cfg-modal-foot">
+<button class="btn-ghost" id="etapaCancel">Cancelar</button>
+<button class="btn-primary" id="etapaSave"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>Salvar</button>
+</div>
+</div>
+</div>
+
+<div class="modal-overlay" id="tipoOverlay">
+<div class="cfgmodal">
+<div class="modal-top"><b id="tipoModalTitle" style="font-size:15px;color:var(--body-strong)">Novo Tipo</b><button class="modal-close" id="tipoCloseBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+<div class="cfg-form" id="tipoForm">
+<div class="fg"><label>Nome</label><input type="text" id="tipNome" placeholder="Ex.: Comercial"></div>
+<div class="fg"><label>Descrição</label><input type="text" id="tipDescricao" placeholder="Ex.: Etapas relacionadas ao contato e negociação comercial."></div>
+<div class="fg"><label>Cor</label><input type="color" id="tipCor" value="#3b82f6" style="width:100%;height:42px;border:1px solid var(--surface-line);border-radius:10px;padding:3px;background:#fbfcfe;cursor:pointer"></div>
+<div class="fg"><label>Ícone <span class="opt">(emoji)</span></label><input type="text" id="tipIcone" placeholder="Ex.: " maxlength="4"></div>
+<div class="fg"><label>Objetivo</label><input type="text" id="tipObjetivo" placeholder="Ex.: Conduzir o contato e a negociação comercial com o cliente."></div>
+<div class="fg"><label>Exemplos de utilização <span class="opt">(separados por vírgula)</span></label><input type="text" id="tipExemplos" placeholder="Ex.: Novo Lead, Contato, Negociação"></div>
+<div class="cfg-field"><label class="cfg-flabel">Status</label><div class="radio-group" id="tipStatusRG"><div class="radio-opt sel" data-val="Ativo"><span class="rd"></span>Ativo</div><div class="radio-opt" data-val="Inativo"><span class="rd"></span>Inativo</div></div></div>
+</div>
+<div class="cfg-modal-foot">
+<button class="btn-ghost" id="tipoCancel">Cancelar</button>
+<button class="btn-primary" id="tipoSave"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>Salvar</button>
+</div>
+</div>
+</div>
+
+<div class="modal-overlay" id="proxAcaoOverlay">
+<div class="cfgmodal">
+<div class="modal-top"><b id="proxAcaoModalTitle" style="font-size:15px;color:var(--body-strong)">Nova Próxima Ação</b><button class="modal-close" id="proxAcaoCloseBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+<div class="cfg-form" id="proxAcaoForm">
+<div class="fg"><label>Nome</label><input type="text" id="paNome" placeholder="Ex.: Confirmar assinatura"></div>
+<div class="fg"><label>Descrição <span class="opt">(opcional)</span></label><input type="text" id="paDescricao" placeholder="Ex.: Confirmar que o cliente assinou o contrato"></div>
+<div class="cfg-field"><label class="cfg-flabel">Tipo</label><div class="radio-group" id="paTipoRG"><div class="radio-opt sel" data-val="Ligação"><span class="rd"></span>Ligação</div><div class="radio-opt" data-val="WhatsApp"><span class="rd"></span>WhatsApp</div><div class="radio-opt" data-val="E-mail"><span class="rd"></span>E-mail</div><div class="radio-opt" data-val="Tarefa"><span class="rd"></span>Tarefa</div><div class="radio-opt" data-val="Visita"><span class="rd"></span>Visita</div><div class="radio-opt" data-val="Outro"><span class="rd"></span>Outro</div></div></div>
+<div class="cfg-field"><label class="cfg-flabel">Prazo padrão</label><div class="radio-group" id="paPrazoRG"><div class="radio-opt sel" data-val="15 minutos"><span class="rd"></span>15 minutos</div><div class="radio-opt" data-val="30 minutos"><span class="rd"></span>30 minutos</div><div class="radio-opt" data-val="1 hora"><span class="rd"></span>1 hora</div><div class="radio-opt" data-val="2 horas"><span class="rd"></span>2 horas</div><div class="radio-opt" data-val="24 horas"><span class="rd"></span>24 horas</div><div class="radio-opt" data-val="48 horas"><span class="rd"></span>48 horas</div><div class="radio-opt" data-val="Personalizado"><span class="rd"></span>Personalizado</div></div></div>
+<div class="fg" id="paPrazoCustomWrap" style="display:none"><label>Prazo personalizado</label><input type="text" id="paPrazoCustom" placeholder="Ex.: 3 dias úteis"></div>
+<div class="cfg-field"><label class="cfg-flabel">Prioridade</label><div class="radio-group" id="paPrioridadeRG"><div class="radio-opt" data-val="Baixa"><span class="rd"></span>Baixa</div><div class="radio-opt sel" data-val="Normal"><span class="rd"></span>Normal</div><div class="radio-opt" data-val="Alta"><span class="rd"></span>Alta</div><div class="radio-opt" data-val="Crítica"><span class="rd"></span>Crítica</div></div></div>
+<div class="cfg-field"><label class="cfg-flabel">Criar automaticamente</label><div class="radio-group" id="paAutoRG"><div class="radio-opt" data-val="Sim"><span class="rd"></span>Sim</div><div class="radio-opt sel" data-val="Não"><span class="rd"></span>Não</div></div></div>
+<div class="cfg-field"><label class="cfg-flabel">Status</label><div class="radio-group" id="paStatusRG"><div class="radio-opt sel" data-val="Ativo"><span class="rd"></span>Ativo</div><div class="radio-opt" data-val="Inativo"><span class="rd"></span>Inativo</div></div></div>
+</div>
+<div class="cfg-modal-foot">
+<button class="btn-ghost" id="proxAcaoCancel">Cancelar</button>
+<button class="btn-primary" id="proxAcaoSave"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>Salvar</button>
+</div>
+</div>
+</div>
+
