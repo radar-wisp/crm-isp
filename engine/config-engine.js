@@ -8,7 +8,7 @@ const CFG={
 vend:{title:'Colaboradores',cols:[
 {key:'nome',label:'Nome',type:'text'},
 {key:'funcao',label:'Função',type:'radio',options:['Vendedor','Supervisor','Coordenador','Diretor','Atendente']},
-{key:'limitar',label:'Limitação de planos',type:'radio',options:['Sim','Não']},
+{key:'limitar',label:'Limitação de planos',type:'select',options:['Sim','Não']},
 {key:'planos',label:'Selecionar planos',type:'checkdrop',source:'grupo',showIf:{key:'limitar',eq:'Sim'}},
 {key:'status',label:'Status',type:'radio',options:['Ativo','Inativo']}],data:[
 {nome:'Renatha Loiola',funcao:'Vendedor',limitar:'Sim',planos:['Residencial Fibra'],status:'Ativo'},
@@ -17,7 +17,7 @@ vend:{title:'Colaboradores',cols:[
 plan:{title:'Planos',cols:[
 {key:'plano',label:'Plano',type:'text'},
 {key:'tecnologia',label:'Tecnologia',type:'radio',options:['Fibra','Wireless'],hideInTable:true},
-{key:'tipo',label:'Tipo',type:'radio',options:['Internet','Streaming','HUB SVA','Transporte','Link dedicado']},
+{key:'tipo',label:'Tipo',type:'select',options:['Internet','Streaming','HUB SVA','Transporte','Link dedicado']},
 {key:'veldown',label:'Velocidade down',type:'text',hideInTable:true},
 {key:'velup',label:'Velocidade up',type:'text',hideInTable:true},
 {key:'mensalidades',label:'Mensalidades',type:'text',hideInTable:true},
@@ -25,23 +25,23 @@ plan:{title:'Planos',cols:[
 {key:'limarea',label:'Limitação de áreas',type:'radio',options:['Sim','Não']},
 {key:'selarea',label:'Selecionar áreas',type:'checkdrop',source:'area',showIf:{key:'limarea',eq:'Sim'},hideInTable:true},
 {key:'vendaapp',label:'Venda app CRM',type:'radio',options:['Sim','Não']},
-{key:'fiscal',label:'Composição fiscal',type:'text',hideInTable:true},
+{key:'fiscal',label:'Composição fiscal',type:'select',hideInTable:true,options:['SCM','SVA']},
 {key:'status',label:'Status',type:'radio',options:['Ativo','Inativo']}],data:[
 {plano:'Fibra 300',tecnologia:'Fibra',tipo:'Internet',veldown:'300 Mega',velup:'150 Mega',mensalidades:'12x',valor:'R$ 79,90',limarea:'Sim',selarea:['Setor Central'],vendaapp:'Sim',fiscal:'SCM',status:'Ativo'},
 {plano:'Fibra 500',tecnologia:'Fibra',tipo:'Internet',veldown:'500 Mega',velup:'250 Mega',mensalidades:'12x',valor:'R$ 99,90',limarea:'Sim',selarea:['Setor Central','Anápolis'],vendaapp:'Sim',fiscal:'SCM',status:'Ativo'},
 {plano:'Radar Play',tecnologia:'Wireless',tipo:'Streaming',veldown:'—',velup:'—',mensalidades:'Mensal',valor:'R$ 19,90',limarea:'Não',selarea:[],vendaapp:'Não',fiscal:'SVA',status:'Ativo'}]},
 meta:{title:'Metas e comissões',cols:[
-{key:'cargo',label:'Cargo',type:'radio',options:['Atendente','Vendedor','Supervisor','Coordenador','Diretor']},
+{key:'cargo',label:'Cargo',type:'select',options:['Atendente','Vendedor','Supervisor','Coordenador','Diretor']},
 {key:'meta',label:'Meta',type:'radio',options:['Quantidade','Valor']},
 {key:'metaQtd',label:'Quantidade',type:'text',showIf:{key:'meta',eq:'Quantidade'}},
 {key:'metaValor',label:'Valor (R$)',type:'text',showIf:{key:'meta',eq:'Valor'}},
 {key:'faixas',label:'Faixas de comissão',type:'tiers'},
-{key:'periodo',label:'Período',type:'radio',options:['Diário','Semanal','Mensal']}],data:[
+{key:'periodo',label:'Período',type:'select',options:['Diário','Semanal','Mensal']}],data:[
 {cargo:'Vendedor',meta:'Quantidade',metaQtd:'25 vendas',metaValor:'',faixas:[{at:'< 100%',com:'R$ 0,00'},{at:'>= 100%',com:'R$ 1.000,00'},{at:'>= 125%',com:'R$ 1.500,00'},{at:'>= 150%',com:'R$ 2.000,00'}],periodo:'Mensal'},
 {cargo:'Supervisor',meta:'Valor',metaQtd:'',metaValor:'R$ 120.000,00',faixas:[{at:'< 100%',com:'0%'},{at:'>= 100%',com:'1,2%'}],periodo:'Mensal'},
 {cargo:'Atendente',meta:'Quantidade',metaQtd:'40 atendimentos',metaValor:'',faixas:[{at:'>= 100%',com:'R$ 500,00'}],periodo:'Semanal'}]},
 area:{title:'Área de vendas',optLabel:r=>{const k=AREA_MAP[r.considerar];return (k&&r[k]?r[k]:(r.considerar||'—'))},cols:[
-{key:'considerar',label:'Considerar',type:'radio',options:['UF','CEP','Cidade','Bairro','Condomínio','Logradouro']},
+{key:'considerar',label:'Considerar',type:'select',options:['UF','CEP','Cidade','Bairro','Condomínio','Logradouro']},
 {key:'uf',label:'UF',type:'text'},
 {key:'cep',label:'CEP',type:'text'},
 {key:'cidade',label:'Cidade',type:'text'},
@@ -238,6 +238,7 @@ cfgForm.innerHTML=sh+body;
 cfgForm.innerHTML=cfgColsHtml(c.cols,idx,c);
 }
 cfgForm.querySelectorAll('.cfg-rg .radio-opt').forEach(opt=>opt.addEventListener('click',()=>{const g=opt.parentElement;g.querySelectorAll('.radio-opt').forEach(o=>o.classList.remove('sel'));opt.classList.add('sel');if(g.dataset.k==='considerar')updateAreaRequired();updateConditionals();}));
+cfgForm.querySelectorAll('select[data-k]').forEach(sel=>sel.addEventListener('change',()=>{if(sel.dataset.k==='considerar')updateAreaRequired();updateConditionals();}));
 cfgForm.querySelectorAll('.cfg-check-item').forEach(ci=>ci.addEventListener('click',e=>{e.preventDefault();ci.classList.toggle('on');}));
 cfgForm.querySelectorAll('.cd-btn').forEach(btn=>btn.addEventListener('click',()=>btn.closest('.checkdrop').classList.toggle('open')));
 cfgForm.querySelectorAll('.cd-item').forEach(it=>it.addEventListener('click',e=>{e.preventDefault();it.classList.toggle('on');const cd=it.closest('.checkdrop');const n=cd.querySelectorAll('.cd-item.on').length;const lbl=cd.closest('.cfg-field').querySelector('.cfg-flabel').textContent;cd.querySelector('.cd-sum').textContent=n?n+' selecionado(s)':lbl;}));
@@ -255,9 +256,9 @@ function updateConditionals(){const c=CFG[cfgEditKey];if(!c)return;c.cols.forEac
 function updateAreaRequired(){
 cfgForm.querySelectorAll('.fg').forEach(fg=>{fg.classList.remove('req-on');const st=fg.querySelector('.req-star');if(st)st.remove();});
 cfgForm.querySelectorAll('input[data-k]').forEach(i=>i.classList.remove('err'));
-const sel=cfgForm.querySelector('.radio-group[data-k="considerar"] .radio-opt.sel');
-if(!sel)return;
-const k=AREA_MAP[sel.dataset.val];
+const cv=formVal('considerar');
+if(!cv)return;
+const k=AREA_MAP[cv];
 const inp=cfgForm.querySelector('input[data-k="'+k+'"]');
 if(inp){const fg=inp.closest('.fg');fg.classList.add('req-on');const lb=fg.querySelector('label');if(lb&&!lb.querySelector('.req-star'))lb.insertAdjacentHTML('beforeend',' <span class="req-star">*</span>');}
 }
@@ -267,9 +268,9 @@ const c=CFG[cfgEditKey];
 if(cfgMaxStep>1&&cfgStep<cfgMaxStep){cfgStep++;updateStepUI();return;}
 const rec={};
 if(cfgEditKey==='area'){
-const sc=cfgForm.querySelector('.radio-group[data-k="considerar"] .radio-opt.sel');
-if(!sc){alert('Selecione o critério em "Considerar".');return;}
-const rk=AREA_MAP[sc.dataset.val];
+const cv=formVal('considerar');
+if(!cv){alert('Selecione o critério em "Considerar".');return;}
+const rk=AREA_MAP[cv];
 const inp=cfgForm.querySelector('input[data-k="'+rk+'"]');
 if(inp&&!inp.value.trim()){inp.classList.add('err');inp.focus();return;}
 }
