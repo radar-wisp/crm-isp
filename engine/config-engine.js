@@ -76,6 +76,47 @@ perda:{title:'Motivos de perda',cols:[
 {motivo:'Preço acima do esperado',status:'Ativo'},
 {motivo:'Sem cobertura no endereço',status:'Ativo'},
 {motivo:'Optou por concorrente',status:'Ativo'}]},
+nf:{title:'NF',steps:['Composição de valor e Imposto','Serviço e tributos NFCom'],cols:[
+{key:'descDerivacao',label:'Descrição derivação',type:'text',step:1,group:'Composição de valor'},
+{key:'fracao',label:'Fração',type:'text',step:1,group:'Composição de valor',hideInTable:true},
+{key:'tipoDocumento',label:'Tipo do documento',type:'select',step:1,group:'Composição de valor',options:['NFCom','NF21','NF22','NFS-e','NF-e (livros digitais)','Outros']},
+{key:'tributacao',label:'Tributação',type:'select',step:1,group:'Composição de valor',options:['Tributar conforme alíquota','Isentar integralmente','Outros valores']},
+{key:'excedente',label:'Excedente base de cálculo',type:'radio',step:1,group:'Composição de valor',options:['Isentar','Não isentar'],hideInTable:true},
+{key:'tabelaIsencoes',label:'Tabela de isenções/reduções',type:'select',step:1,group:'Composição de valor',hideInTable:true,options:['Nenhuma redução/isenção','Programa Governo Eletrônico','Programa Internet Popular','Programa de internet destinado a escolas','Programa de acesso Individual Classe Especial','Prestação de serviço de TV Assinatura','Prestação de serviço e provimento de acesso a internet','Outros']},
+{key:'emitente',label:'Emitente',type:'select',step:1,group:'Imposto',source:'vend',hideInTable:true},
+{key:'tipoServico',label:'Tipo de serviço utilizado',type:'select',step:1,group:'Imposto',hideInTable:true,options:['TV por assinatura','Multimídia','Provimento de acesso à internet','Outros']},
+{key:'pctBaseCalculo',label:'% Base de cálculo',type:'text',step:1,group:'Imposto',hideInTable:true},
+{key:'pctICMS1',label:'% ICMS',type:'text',step:1,group:'Imposto',hideInTable:true},
+{key:'aliqPIS1',label:'Alíquota PIS',type:'text',step:1,group:'Imposto',hideInTable:true},
+{key:'aliqCONFINS1',label:'Alíquota CONFINS',type:'text',step:1,group:'Imposto',hideInTable:true},
+{key:'cst',label:'CST',type:'text',step:1,group:'Imposto',hideInTable:true},
+{key:'csll',label:'CSLL',type:'text',step:1,group:'Imposto',hideInTable:true},
+{key:'irpj',label:'IRPJ',type:'text',step:1,group:'Imposto',hideInTable:true},
+{key:'pctIR',label:'% IR',type:'text',step:1,group:'Imposto',hideInTable:true},
+{key:'descServico',label:'Descrição',type:'text',step:2,group:'Informações do serviço',hideInTable:true},
+{key:'unidadeNFCom',label:'Unidade NFCom',type:'select',step:2,group:'Informações do serviço',hideInTable:true,options:['MIN','MB','GB','UN']},
+{key:'tipoServico2',label:'Tipo de serviço utilizado',type:'select',step:2,group:'Informações do serviço',hideInTable:true,options:['TV por assinatura','Multimídia','Provimento de acesso à internet','Outros']},
+{key:'descTributos',label:'Descrição',type:'text',step:2,group:'Composição dos tributos NFCom',hideInTable:true},
+{key:'classifItem',label:'Classificação do item',type:'text',step:2,group:'Composição dos tributos NFCom',hideInTable:true},
+{key:'sitTribPIS',label:'Situação tributária PIS',type:'text',step:2,group:'PIS e CONFINS',hideInTable:true},
+{key:'sitTribCONFINS',label:'Situação tributária CONFINS',type:'text',step:2,group:'PIS e CONFINS',hideInTable:true},
+{key:'aliqPIS2',label:'Alíquota PIS',type:'text',step:2,group:'PIS e CONFINS',hideInTable:true},
+{key:'aliqCONFINS2',label:'Alíquota CONFINS',type:'text',step:2,group:'PIS e CONFINS',hideInTable:true},
+{key:'aliqFUST',label:'Alíquota FUST',type:'text',step:2,group:'FUST e FUNTTEL',hideInTable:true},
+{key:'aliqFUNTTEL',label:'Alíquota FUNTTEL',type:'text',step:2,group:'FUST e FUNTTEL',hideInTable:true},
+{key:'sitTribICMS',label:'Situação tributária ou situação da operação',type:'text',step:2,group:'ICMS',hideInTable:true},
+{key:'aliqICMS',label:'Alíquota ICMS',type:'text',step:2,group:'ICMS',hideInTable:true},
+{key:'pctFCP',label:'% FCP',type:'text',step:2,group:'ICMS',hideInTable:true},
+{key:'pctRetPIS',label:'% Retenção PIS',type:'text',step:2,group:'Informações de retenção de tributos federais',hideInTable:true},
+{key:'pctRetCONFINS',label:'% Retenção CONFINS',type:'text',step:2,group:'Informações de retenção de tributos federais',hideInTable:true},
+{key:'pctRetCSLL',label:'% Retenção CSLL',type:'text',step:2,group:'Informações de retenção de tributos federais',hideInTable:true},
+{key:'pctRetIRRF',label:'% Retenção IRRF',type:'text',step:2,group:'Informações de retenção de tributos federais',hideInTable:true},
+{key:'pctIBSMunicipal',label:'% IBS Municipal',type:'text',step:2,group:'Informações de retenção de tributos federais',hideInTable:true},
+{key:'pctIBSEstadual',label:'% IBS Estadual',type:'text',step:2,group:'Informações de retenção de tributos federais',hideInTable:true},
+{key:'pctCBS',label:'% CBS',type:'text',step:2,group:'Informações de retenção de tributos federais',hideInTable:true},
+{key:'classifTributaria',label:'Classificação tributária',type:'text',step:2,group:'Informações de retenção de tributos federais',hideInTable:true},
+{key:'status',label:'Status',type:'radio',step:2,group:'Informações de retenção de tributos federais',options:['Ativo','Inativo']}],data:[
+{descDerivacao:'SCM Internet',fracao:'1/1',tipoDocumento:'NFCom',tributacao:'Tributar conforme alíquota',excedente:'Isentar',tabelaIsencoes:'Nenhuma redução/isenção',emitente:'Renatha Loiola',tipoServico:'Provimento de acesso à internet',pctBaseCalculo:'100%',pctICMS1:'18%',aliqPIS1:'0,65%',aliqCONFINS1:'3%',cst:'01',csll:'9%',irpj:'15%',pctIR:'1,5%',descServico:'Internet fibra residencial',unidadeNFCom:'MB',tipoServico2:'Provimento de acesso à internet',descTributos:'Tributos sobre serviço de internet',classifItem:'001',sitTribPIS:'01',sitTribCONFINS:'01',aliqPIS2:'0,65%',aliqCONFINS2:'3%',aliqFUST:'1%',aliqFUNTTEL:'0,5%',sitTribICMS:'00',aliqICMS:'18%',pctFCP:'2%',pctRetPIS:'0%',pctRetCONFINS:'0%',pctRetCSLL:'0%',pctRetIRRF:'0%',pctIBSMunicipal:'0%',pctIBSEstadual:'0%',pctCBS:'0%',classifTributaria:'000001',status:'Ativo'}]},
 camp:{title:'Campanhas promocionais',cols:[
 {key:'campanha',label:'Campanha',type:'text'},
 {key:'dtini',label:'Data inicial',type:'date'},
@@ -120,15 +161,18 @@ Object.keys(CFG).forEach(renderCfg);
 
 const cfgOverlay=document.getElementById('cfgOverlay');
 const cfgForm=document.getElementById('cfgForm');
-let cfgEditKey=null,cfgEditIdx=null;
-function openCfgEdit(key,idx){
-cfgEditKey=key;cfgEditIdx=idx;const c=CFG[key];
-document.getElementById('cfgModalTitle').textContent=(idx==null?'Novo registro':'Editar registro')+' — '+c.title;
-cfgForm.innerHTML=c.cols.map(col=>{
+const cfgBackBtn=document.getElementById('cfgBack');
+const cfgSaveBtn=document.getElementById('cfgSave');
+const cfgSaveDefaultHtml=cfgSaveBtn.innerHTML;
+let cfgEditKey=null,cfgEditIdx=null,cfgStep=1,cfgMaxStep=1;
+function cfgFieldHtml(col,idx,c){
 const k=cK(col),label=cL(col),type=cT(col);
 const cur=idx!=null?c.data[idx][k]:((type==='checks'||type==='checkdrop')?[]:'');
 if(type==='radio'){
 return '<div class="cfg-field" data-field="'+k+'"><label class="cfg-flabel">'+label+'</label><div class="radio-group cfg-rg" data-k="'+k+'">'+cOpts(col).map(o=>'<div class="radio-opt'+(o===cur?' sel':'')+'" data-val="'+escA(o)+'"><span class="rd"></span>'+esc(o)+'</div>').join('')+'</div></div>';
+}
+if(type==='select'){
+return '<div class="cfg-field" data-field="'+k+'"><label class="cfg-flabel">'+label+'</label><div class="select"><select data-k="'+k+'">'+cOpts(col).map(o=>'<option value="'+escA(o)+'"'+(o===cur?' selected':'')+'>'+esc(o)+'</option>').join('')+'</select><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg></div></div>';
 }
 if(type==='checks'){
 const arr=Array.isArray(cur)?cur:[];
@@ -147,7 +191,48 @@ if(type==='date'){
 return '<div class="fg" data-field="'+k+'"><label>'+label+'</label><input type="date" data-k="'+k+'" value="'+escA(cur)+'"></div>';
 }
 return '<div class="fg" data-field="'+k+'"><label>'+label+'</label><input type="text" data-k="'+k+'" value="'+escA(cur)+'" placeholder="'+escA(label)+'"></div>';
-}).join('');
+}
+function cfgColsHtml(cols,idx,c){
+let out='',lastGroup=null;
+cols.forEach(col=>{
+if(col.group&&col.group!==lastGroup){out+='<div class="pb-label">'+esc(col.group)+'</div>';lastGroup=col.group;}
+out+=cfgFieldHtml(col,idx,c);
+});
+return out;
+}
+function updateStepUI(){
+if(cfgMaxStep>1){
+cfgForm.querySelectorAll('.cfg-step').forEach(d=>d.style.display=(parseInt(d.dataset.cfgstep)===cfgStep)?'':'none');
+cfgForm.querySelectorAll('.fstep').forEach(f=>{const s=parseInt(f.dataset.fstep);f.classList.toggle('active',s===cfgStep);f.classList.toggle('done',s<cfgStep);});
+cfgForm.querySelectorAll('.fline').forEach(l=>l.classList.toggle('on',parseInt(l.dataset.fline)<cfgStep));
+cfgBackBtn.style.display=cfgStep>1?'':'none';
+cfgSaveBtn.innerHTML=cfgStep<cfgMaxStep?'Avançar<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px"><polyline points="9 18 15 12 9 6"/></svg>':cfgSaveDefaultHtml;
+}else{
+cfgBackBtn.style.display='none';
+cfgSaveBtn.innerHTML=cfgSaveDefaultHtml;
+}
+}
+function openCfgEdit(key,idx){
+cfgEditKey=key;cfgEditIdx=idx;const c=CFG[key];
+document.getElementById('cfgModalTitle').textContent=(idx==null?'Novo registro':'Editar registro')+' — '+c.title;
+cfgMaxStep=c.cols.reduce((m,col)=>Math.max(m,col.step||1),1);
+cfgStep=1;
+if(cfgMaxStep>1){
+const titles=c.steps||[];
+let sh='<div class="wz-steps" style="padding:0 0 16px;border-bottom:1px solid var(--surface-line);margin-bottom:14px">';
+for(let s=1;s<=cfgMaxStep;s++){
+sh+='<div class="fstep'+(s===1?' active':'')+'" data-fstep="'+s+'"><span class="bub">'+s+'</span><div class="fl"><b>'+esc(titles[s-1]||('Etapa '+s))+'</b></div></div>';
+if(s<cfgMaxStep)sh+='<div class="fline" data-fline="'+s+'"></div>';
+}
+sh+='</div>';
+let body='';
+for(let s=1;s<=cfgMaxStep;s++){
+body+='<div class="cfg-step" data-cfgstep="'+s+'" style="'+(s===1?'':'display:none')+'">'+cfgColsHtml(c.cols.filter(col=>(col.step||1)===s),idx,c)+'</div>';
+}
+cfgForm.innerHTML=sh+body;
+}else{
+cfgForm.innerHTML=cfgColsHtml(c.cols,idx,c);
+}
 cfgForm.querySelectorAll('.cfg-rg .radio-opt').forEach(opt=>opt.addEventListener('click',()=>{const g=opt.parentElement;g.querySelectorAll('.radio-opt').forEach(o=>o.classList.remove('sel'));opt.classList.add('sel');if(g.dataset.k==='considerar')updateAreaRequired();updateConditionals();}));
 cfgForm.querySelectorAll('.cfg-check-item').forEach(ci=>ci.addEventListener('click',e=>{e.preventDefault();ci.classList.toggle('on');}));
 cfgForm.querySelectorAll('.cd-btn').forEach(btn=>btn.addEventListener('click',()=>btn.closest('.checkdrop').classList.toggle('open')));
@@ -158,9 +243,10 @@ else if(e.target.closest('.tier-del')){e.preventDefault();e.target.closest('.tie
 }));
 updateConditionals();
 if(key==='area')updateAreaRequired();
+updateStepUI();
 cfgOverlay.classList.add('open');
 }
-function formVal(k){const rg=cfgForm.querySelector('.radio-group[data-k="'+k+'"] .radio-opt.sel');if(rg)return rg.dataset.val;const inp=cfgForm.querySelector('input[data-k="'+k+'"]');return inp?inp.value:''}
+function formVal(k){const rg=cfgForm.querySelector('.radio-group[data-k="'+k+'"] .radio-opt.sel');if(rg)return rg.dataset.val;const sel=cfgForm.querySelector('select[data-k="'+k+'"]');if(sel)return sel.value;const inp=cfgForm.querySelector('input[data-k="'+k+'"]');return inp?inp.value:''}
 function updateConditionals(){const c=CFG[cfgEditKey];if(!c)return;c.cols.forEach(col=>{if(col.showIf){const w=cfgForm.querySelector('[data-field="'+cK(col)+'"]');if(w)w.style.display=(formVal(col.showIf.key)===col.showIf.eq)?'':'none';}});}
 function updateAreaRequired(){
 cfgForm.querySelectorAll('.fg').forEach(fg=>{fg.classList.remove('req-on');const st=fg.querySelector('.req-star');if(st)st.remove();});
@@ -173,7 +259,9 @@ if(inp){const fg=inp.closest('.fg');fg.classList.add('req-on');const lb=fg.query
 }
 function closeCfg(){cfgOverlay.classList.remove('open')}
 document.getElementById('cfgSave').addEventListener('click',()=>{
-const c=CFG[cfgEditKey];const rec={};
+const c=CFG[cfgEditKey];
+if(cfgMaxStep>1&&cfgStep<cfgMaxStep){cfgStep++;updateStepUI();return;}
+const rec={};
 if(cfgEditKey==='area'){
 const sc=cfgForm.querySelector('.radio-group[data-k="considerar"] .radio-opt.sel');
 if(!sc){alert('Selecione o critério em "Considerar".');return;}
@@ -184,6 +272,7 @@ if(inp&&!inp.value.trim()){inp.classList.add('err');inp.focus();return;}
 c.cols.forEach(col=>{
 const k=cK(col),type=cT(col);
 if(type==='radio'){const sel=cfgForm.querySelector('.radio-group[data-k="'+k+'"] .radio-opt.sel');rec[k]=sel?sel.dataset.val:'';}
+else if(type==='select'){const sel=cfgForm.querySelector('select[data-k="'+k+'"]');rec[k]=sel?sel.value:'';}
 else if(type==='checks'){rec[k]=[...cfgForm.querySelectorAll('.cfg-checks[data-k="'+k+'"] .cfg-check-item.on')].map(x=>x.dataset.val);}
 else if(type==='checkdrop'){rec[k]=[...cfgForm.querySelectorAll('.checkdrop[data-k="'+k+'"] .cd-item.on')].map(x=>x.dataset.val);}
 else if(type==='tiers'){rec[k]=[...cfgForm.querySelectorAll('.tiers[data-k="'+k+'"] .tier-row')].map(r=>({at:r.querySelector('.tier-at').value.trim(),com:r.querySelector('.tier-com').value.trim()})).filter(x=>x.at||x.com);}
@@ -192,6 +281,7 @@ else{const inp=cfgForm.querySelector('input[data-k="'+k+'"]');rec[k]=inp?inp.val
 if(cfgEditIdx==null)c.data.push(rec);else c.data[cfgEditIdx]=rec;
 renderCfg(cfgEditKey);closeCfg();
 });
+cfgBackBtn.addEventListener('click',()=>{if(cfgStep>1){cfgStep--;updateStepUI();}});
 document.getElementById('cfgCancel').addEventListener('click',closeCfg);
 document.getElementById('cfgCloseBtn').addEventListener('click',closeCfg);
 cfgOverlay.addEventListener('click',e=>{if(e.target===cfgOverlay)closeCfg()});
