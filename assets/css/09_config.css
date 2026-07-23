@@ -64,10 +64,7 @@
 .tier-add{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;color:var(--accent);background:rgba(14,165,183,.08);padding:8px 13px;border-radius:9px}
 .tier-add:hover{background:rgba(14,165,183,.14)}
 
-/* NF — tabela e modal ajustados para 800x600, sem barra de rolagem (escopo restrito ao módulo Configurações > NF) */
-.cfg-card-nf{width:800px;max-width:100%}
-.cfg-card-nf .table-wrap{height:534px;overflow:auto;scrollbar-width:none}
-.cfg-card-nf .table-wrap::-webkit-scrollbar{display:none}
+/* NF — modal ajustado para 800x600, sem barra de rolagem (escopo restrito ao módulo Configurações > NF); tabela segue as mesmas proporções padrão de Colaboradores */
 .cfgmodal.cfgmodal-nf{width:800px;height:600px}
 .cfgmodal.cfgmodal-nf .cfg-form{padding:14px 20px;overflow:hidden}
 .cfgmodal.cfgmodal-nf .wz-steps{padding:0 0 10px;margin-bottom:10px}
