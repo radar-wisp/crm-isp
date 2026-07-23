@@ -66,12 +66,19 @@
 
 /* NF — modal ajustado para 800x600, sem barra de rolagem (escopo restrito ao módulo Configurações > NF); tabela segue as mesmas proporções padrão de Colaboradores */
 .cfgmodal.cfgmodal-nf{width:800px;height:600px}
-.cfgmodal.cfgmodal-nf .cfg-form{padding:14px 20px;overflow:hidden}
+.cfgmodal.cfgmodal-nf .cfg-form{padding:8px 20px;overflow:hidden}
 .cfgmodal.cfgmodal-nf .wz-steps{padding:0 0 10px;margin-bottom:10px}
 .cfgmodal.cfgmodal-nf .cfg-step{display:grid;grid-template-columns:repeat(5,1fr);gap:6px 12px;align-content:start;overflow-y:auto;scrollbar-width:none;max-height:100%}
 .cfgmodal.cfgmodal-nf .cfg-step::-webkit-scrollbar{display:none}
 .cfgmodal.cfgmodal-nf .cfg-step .pb-label{grid-column:1/-1;font-size:10.5px;letter-spacing:.3px;text-transform:uppercase;color:#98a4b6;font-weight:600;margin:5px 0 1px}
 .cfgmodal.cfgmodal-nf .cfg-step .cfg-field,.cfgmodal.cfgmodal-nf .cfg-step .fg{margin:0}
+.cfgmodal.cfgmodal-nf .cfg-step [data-field="descDerivacao"]{grid-column:1/-1}
+.cfgmodal.cfgmodal-nf .cfg-step [data-field="descServico"]{grid-column:span 3}
+.cfgmodal.cfgmodal-nf .cfg-step[data-cfgstep="2"]{gap:1px 12px}
+.cfgmodal.cfgmodal-nf .cfg-step[data-cfgstep="2"] .pb-label{margin:1px 0 1px}
+.cfgmodal.cfgmodal-nf .cfg-step[data-cfgstep="2"] .cfg-flabel,.cfgmodal.cfgmodal-nf .cfg-step[data-cfgstep="2"] .fg label{margin-bottom:1px}
+.cfgmodal.cfgmodal-nf .cfg-step[data-cfgstep="2"] .fg input,.cfgmodal.cfgmodal-nf .cfg-step[data-cfgstep="2"] .select select{height:24px}
+.cfgmodal.cfgmodal-nf .cfg-step[data-cfgstep="2"] .radio-opt{padding:3px 7px}
 .cfgmodal.cfgmodal-nf .cfg-flabel,.cfgmodal.cfgmodal-nf .fg label{font-size:10px;margin-bottom:3px}
 .cfgmodal.cfgmodal-nf .fg input{height:29px;font-size:11.5px;padding:0 8px}
 .cfgmodal.cfgmodal-nf .select select{height:29px;font-size:11.5px;padding:0 24px 0 8px}
