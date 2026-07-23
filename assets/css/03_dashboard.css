@@ -1,0 +1,79 @@
+/* ==============================================================
+ * Tela Dashboard (KPIs, widgets, gráficos)
+ * Extraído do <style> original de index.html (bloco contíguo,
+ * ordem preservada — nenhuma regra foi reescrita ou reordenada).
+ * ============================================================== */
+.content{padding:26px;overflow-y:auto}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
+.dash-charts{display:grid;grid-template-columns:repeat(2,1fr);gap:18px;margin-top:20px}
+.dwidget{background:var(--surface);border:1px solid var(--surface-line);border-radius:var(--radius);box-shadow:var(--shadow);position:relative}
+.dwidget .dw-head{display:flex;align-items:center;justify-content:space-between;padding:15px 18px;border-bottom:1px solid var(--surface-line)}
+.dwidget .dw-head h3{font-size:14.5px;color:var(--body-strong);font-weight:700}
+.dwidget .dw-head small{font-size:11.5px;color:#8a97ab;display:block;margin-top:1px}
+.dw-del{width:30px;height:30px;border-radius:8px;display:grid;place-items:center;color:#b4bdca;border:1px solid var(--surface-line);background:var(--surface);flex-shrink:0}
+.dw-del:hover{background:rgba(239,68,68,.1);color:#dc2626}
+.dw-del svg{width:15px;height:15px}
+.dw-body{padding:18px}
+.d-bars{display:flex;align-items:flex-end;gap:12px;height:180px}
+.d-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:8px;height:100%;justify-content:flex-end;min-width:0}
+.d-bar{width:72%;max-width:38px;border-radius:7px 7px 3px 3px;background:linear-gradient(180deg,var(--accent-2),var(--accent));position:relative;transition:height .5s cubic-bezier(.2,.8,.2,1)}
+.d-bar span{position:absolute;top:-19px;left:50%;transform:translateX(-50%);font-size:10.5px;font-weight:700;color:var(--body-strong);white-space:nowrap}
+.d-col small{font-size:10.5px;color:#8a97ab;font-weight:500;text-align:center;line-height:1.2;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;width:100%}
+.d-pie-wrap{display:flex;align-items:center;gap:20px;flex-wrap:wrap;justify-content:center}
+.d-pie{width:150px;height:150px;border-radius:50%;position:relative;flex-shrink:0}
+.d-pie::after{content:"";position:absolute;inset:28px;background:var(--surface);border-radius:50%}
+.d-legend{display:flex;flex-direction:column;gap:9px;flex:1;min-width:140px}
+.d-legend .lg{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--body)}
+.d-legend .lg i{width:9px;height:9px;border-radius:3px;flex-shrink:0}
+.d-legend .lg b{margin-left:auto;color:var(--body-strong);font-variant-numeric:tabular-nums}
+.d-line-svg{width:100%;height:180px;overflow:visible}
+[data-dbfield]{transition:none}
+@media(max-width:900px){.dash-charts{grid-template-columns:1fr}}
+.kpi{background:var(--surface);border:1px solid var(--surface-line);border-radius:var(--radius);padding:18px 20px;box-shadow:var(--shadow)}
+.kpi .head{display:flex;align-items:center;justify-content:space-between}
+.kpi .ico{width:40px;height:40px;border-radius:11px;display:grid;place-items:center}
+.kpi .ico svg{width:19px;height:19px}
+.i-blue{background:rgba(14,165,183,.12);color:var(--accent)}
+.i-green{background:rgba(34,197,94,.12);color:var(--signal)}
+.i-amber{background:rgba(245,158,11,.14);color:var(--warn)}
+.i-violet{background:rgba(124,92,246,.12);color:var(--violet)}
+.kpi .val{font-size:27px;font-weight:700;color:var(--body-strong);letter-spacing:-.6px;margin-top:14px;font-variant-numeric:tabular-nums}
+.kpi .lbl{font-size:12.5px;color:#8a97ab;margin-top:2px}
+.trend{font-size:12px;font-weight:600;display:inline-flex;align-items:center;gap:3px;padding:3px 8px;border-radius:20px}
+.trend.up{background:rgba(34,197,94,.12);color:#16a34a}
+.trend.down{background:rgba(239,68,68,.12);color:#dc2626}
+.trend svg{width:12px;height:12px}
+
+.workspace{margin-top:22px;background:var(--surface);border:1px solid var(--surface-line);border-radius:var(--radius);box-shadow:var(--shadow);min-height:46vh;display:grid;place-content:center;justify-items:center;text-align:center;gap:14px;padding:40px}.workspace .glyph{width:78px;height:78px;border-radius:20px;display:grid;place-items:center;background:#f4f8fb;border:1px solid var(--surface-line);color:var(--accent)}
+.workspace .glyph svg{width:34px;height:34px}
+.workspace h2{font-size:18px;color:var(--body-strong);font-weight:700}
+.workspace p{font-size:13.5px;color:#8a97ab;max-width:360px;line-height:1.6}
+
+@media(max-width:1080px){.kpis{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:820px){
+.app,.app.collapsed{grid-template-columns:1fr}
+.sidebar{position:fixed;left:0;top:0;z-index:50;width:var(--sw);transform:translateX(-100%);transition:transform .25s}
+.app.mobile-open .sidebar{transform:none}
+.app.collapsed .brand .txt,.app.collapsed .nav-item .txt,.app.collapsed .nav-group .label,.app.collapsed .nav-item .tag,.app.collapsed .user-card .info{display:block}
+.app.collapsed .nav-item{justify-content:flex-start;gap:12px}
+.app.collapsed .brand{justify-content:flex-start;padding:22px 22px 20px}
+.search{display:none}
+}
+@media(max-width:520px){.kpis{grid-template-columns:1fr}}
+.scrim{display:none;position:fixed;inset:0;background:rgba(11,18,32,.5);z-index:40}
+.app.mobile-open .scrim{display:block}
+
+.view{display:none}
+.view.active{display:block;animation:fade .25s ease}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+.page-head{display:flex;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:20px}
+.page-head .hl h2{font-size:20px;color:var(--body-strong);font-weight:700;letter-spacing:-.3px}
+.page-head .hl p{font-size:13px;color:#8a97ab;margin-top:2px}
+.page-head .actions{margin-left:auto;display:flex;gap:10px}
+.btn-primary{height:42px;padding:0 18px;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--accent-2));color:#fff;font-weight:600;font-size:13.5px;display:inline-flex;align-items:center;gap:8px;box-shadow:0 6px 16px -8px rgba(14,165,183,.8);transition:.15s}
+.btn-primary:hover{filter:brightness(1.05)}
+.btn-primary svg{width:16px;height:16px}
+.btn-ghost{height:42px;padding:0 15px;border-radius:10px;border:1px solid var(--surface-line);background:var(--surface);color:var(--body);font-weight:600;font-size:13.5px;display:inline-flex;align-items:center;gap:8px;transition:.15s}
+.btn-ghost:hover{background:#f2f5f9;color:var(--body-strong)}
+.btn-ghost svg{width:16px;height:16px}
