@@ -1,0 +1,114 @@
+<section class="view" id="config">
+<div class="cfg-toolbar">
+<button class="cfg-tab on" data-cfg="vend"><span class="ci"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span><span>Colaboradores</span></button>
+<button class="cfg-tab" data-cfg="meta"><span class="ci"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg></span><span>Metas e comissões</span></button>
+<button class="cfg-tab" data-cfg="area"><span class="ci"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></span><span>Área de vendas</span></button>
+<button class="cfg-tab" data-cfg="plan"><span class="ci"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v6H4z"/><path d="M4 14h16v6H4z"/><circle cx="8" cy="7" r="1" fill="currentColor"/><circle cx="8" cy="17" r="1" fill="currentColor"/></svg></span><span>Planos</span></button>
+<button class="cfg-tab" data-cfg="grupo"><span class="ci"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></span><span>Grupo de planos</span></button>
+<button class="cfg-tab" data-cfg="pagamento"><span class="ci"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg></span><span>Formas de pagamento</span></button>
+<button class="cfg-tab" data-cfg="perda"><span class="ci"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg></span><span>Motivos de perda</span></button>
+<button class="cfg-tab" data-cfg="camp"><span class="ci"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></svg></span><span>Campanhas promocionais</span></button>
+<button class="cfg-tab" data-cfg="funis"><span class="ci"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h18l-7 8.5V19l-4 2v-8.5z"/></svg></span><span>Funis de Venda</span></button>
+</div>
+
+<div class="cfg-panel on" id="cfg-vend">
+<div class="card">
+<div class="card-head"><h3>Vendedores e supervisores</h3><button class="btn-primary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Novo</button></div>
+<div class="table-wrap"><table>
+<thead><tr><th>Nome</th><th>Função</th><th>Área</th><th>Status</th></tr></thead>
+<tbody>
+<tr><td><div class="lead-cli"><div class="av" style="background:linear-gradient(135deg,#0ea5b7,#14c8dd)">RL</div><div><b>Renatha Loiola</b><small>renatha@radarinternet.com</small></div></div></td><td>Vendedor</td><td>Centro</td><td><span class="badge b-won">Ativo</span></td></tr>
+<tr><td><div class="lead-cli"><div class="av" style="background:linear-gradient(135deg,#7c5cf6,#9d7bff)">AL</div><div><b>Ana Lima</b><small>ana@radarinternet.com</small></div></div></td><td>Supervisor</td><td>Regional Norte</td><td><span class="badge b-won">Ativo</span></td></tr>
+<tr><td><div class="lead-cli"><div class="av" style="background:linear-gradient(135deg,#f59e0b,#fbbf24)">JP</div><div><b>João Prado</b><small>joao@radarinternet.com</small></div></div></td><td>Vendedor</td><td>Regional Sul</td><td><span class="badge b-lost">Inativo</span></td></tr>
+</tbody>
+</table></div>
+</div>
+</div>
+
+<div class="cfg-panel" id="cfg-plan">
+<div class="card">
+<div class="card-head"><h3>Planos</h3><button class="btn-primary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Novo</button></div>
+<div class="table-wrap"><table>
+<thead><tr><th>Plano</th><th>Velocidade</th><th>Tipo</th><th>Valor</th><th>Status</th></tr></thead>
+<tbody>
+<tr><td><b>Fibra 300</b></td><td>300 Mega</td><td><span class="chip-soft">Residencial</span></td><td>R$ 79,90</td><td><span class="badge b-won">Ativo</span></td></tr>
+<tr><td><b>Fibra 500</b></td><td>500 Mega</td><td><span class="chip-soft">Residencial</span></td><td>R$ 99,90</td><td><span class="badge b-won">Ativo</span></td></tr>
+<tr><td><b>Fibra 1 Giga</b></td><td>1000 Mega</td><td><span class="chip-soft">Empresarial</span></td><td>R$ 249,90</td><td><span class="badge b-won">Ativo</span></td></tr>
+</tbody>
+</table></div>
+</div>
+</div>
+
+<div class="cfg-panel" id="cfg-meta">
+<div class="card">
+<div class="card-head"><h3>Metas e comissão</h3><button class="btn-primary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Nova</button></div>
+<div class="table-wrap"><table>
+<thead><tr><th>Cargo / Vendedor</th><th>Meta mensal</th><th>Comissão</th><th>Período</th></tr></thead>
+<tbody>
+<tr><td><b>Vendedor</b></td><td>25 vendas</td><td>3,5%</td><td>Mensal</td></tr>
+<tr><td><b>Supervisor</b></td><td>120 vendas (equipe)</td><td>1,2%</td><td>Mensal</td></tr>
+<tr><td><b>Renatha Loiola</b></td><td>30 vendas</td><td>4,0%</td><td>Jul/2026</td></tr>
+</tbody>
+</table></div>
+</div>
+</div>
+
+<div class="cfg-panel" id="cfg-area">
+<div class="card">
+<div class="card-head"><h3>Áreas de vendas</h3><button class="btn-primary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Nova</button></div>
+<div class="table-wrap"><table>
+<thead><tr><th>Área</th><th>Cidade</th><th>Responsável</th><th>Clientes</th></tr></thead>
+<tbody>
+<tr><td><b>Centro</b></td><td>Goiânia · GO</td><td>Renatha Loiola</td><td>412</td></tr>
+<tr><td><b>Regional Norte</b></td><td>Anápolis · GO</td><td>Ana Lima</td><td>287</td></tr>
+<tr><td><b>Regional Sul</b></td><td>Jaraguá · GO</td><td>João Prado</td><td>198</td></tr>
+</tbody>
+</table></div>
+</div>
+</div>
+
+<div class="cfg-panel" id="cfg-grupo">
+<div class="card">
+<div class="card-head"><h3>Grupo de planos</h3><button class="btn-primary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Novo</button></div>
+<div class="table-wrap"><table>
+<thead><tr><th>Grupo</th><th>Segmento</th><th>Planos</th><th>Status</th></tr></thead>
+<tbody>
+<tr><td><b>Residencial Fibra</b></td><td><span class="chip-soft">Residencial</span></td><td>Fibra 300, 500</td><td><span class="badge b-won">Ativo</span></td></tr>
+<tr><td><b>Empresarial</b></td><td><span class="chip-soft">Empresarial</span></td><td>Fibra 1 Giga</td><td><span class="badge b-won">Ativo</span></td></tr>
+<tr><td><b>Combos</b></td><td><span class="chip-soft">Misto</span></td><td>Combo Residencial, Empresarial</td><td><span class="badge b-won">Ativo</span></td></tr>
+</tbody>
+</table></div>
+</div>
+</div>
+
+<div class="cfg-panel" id="cfg-pagamento"></div>
+<div class="cfg-panel" id="cfg-perda">
+<div class="card">
+<div class="card-head"><h3>Motivos de perda da venda</h3><button class="btn-primary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Novo</button></div>
+<div class="table-wrap"><table>
+<thead><tr><th>Motivo</th><th>Categoria</th><th>Ocorrências</th><th>Status</th></tr></thead>
+<tbody>
+<tr><td><b>Preço acima do esperado</b></td><td><span class="chip-soft">Comercial</span></td><td>34</td><td><span class="badge b-won">Ativo</span></td></tr>
+<tr><td><b>Sem cobertura no endereço</b></td><td><span class="chip-soft">Técnico</span></td><td>21</td><td><span class="badge b-won">Ativo</span></td></tr>
+<tr><td><b>Optou por concorrente</b></td><td><span class="chip-soft">Comercial</span></td><td>18</td><td><span class="badge b-won">Ativo</span></td></tr>
+</tbody>
+</table></div>
+</div>
+</div>
+
+<div class="cfg-panel" id="cfg-camp">
+<div class="card">
+<div class="card-head"><h3>Campanha promocional</h3><button class="btn-primary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Nova</button></div>
+<div class="table-wrap"><table>
+<thead><tr><th>Campanha</th><th>Período</th><th>Desconto</th><th>Status</th></tr></thead>
+<tbody>
+<tr><td><b>Fibra 500 · Julho</b></td><td>01/07 – 31/07</td><td>2 meses grátis</td><td><span class="badge b-won">Ativa</span></td></tr>
+<tr><td><b>Black Friday Internet</b></td><td>20/11 – 30/11</td><td>50% por 3 meses</td><td><span class="badge b-new">Agendada</span></td></tr>
+<tr><td><b>Indique e Ganhe</b></td><td>Contínua</td><td>R$ 50 de bônus</td><td><span class="badge b-won">Ativa</span></td></tr>
+</tbody>
+</table></div>
+</div>
+</div>
+
+<div class="cfg-panel" id="cfg-funis"></div>
+</section>
