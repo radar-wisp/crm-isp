@@ -1,0 +1,43 @@
+<section class="view" id="venda">
+<div class="page-head">
+<div class="hl">
+<h2>Fluxo da Venda</h2>
+<p>Leads atribuídas a você · Renatha Loiola</p>
+</div>
+<div class="actions">
+<div class="seg">
+<button class="on" id="vTabKanban"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="6" height="18" rx="1"/><rect x="10" y="3" width="6" height="12" rx="1"/><rect x="17" y="3" width="4" height="8" rx="1"/></svg>Kanban</button>
+<button id="vTabList"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>Lista</button>
+</div>
+</div>
+</div>
+
+<div class="flow-grid">
+<div>
+<div class="lead-kpis">
+<div class="mini"><div class="cap"><i style="background:var(--accent)"></i>Novos</div><div class="num" id="vkNovo">0</div></div>
+<div class="mini"><div class="cap"><i style="background:var(--violet)"></i>Em contato</div><div class="num" id="vkContato">0</div></div>
+<div class="mini"><div class="cap"><i style="background:var(--warn)"></i>Em negociação</div><div class="num" id="vkNeg">0</div></div>
+<div class="mini"><div class="cap"><i style="background:var(--signal)"></i>Convertidos</div><div class="num" id="vkConv">0</div></div>
+</div>
+
+<div class="funnel-view on" id="vViewKanban">
+<div class="board" id="vBoard"></div>
+</div>
+
+<div class="funnel-view" id="vViewList">
+<div class="card">
+<div class="card-head"><h3>Minhas leads</h3><span class="count"><b id="myLeadCount">0</b> no fluxo</span></div>
+<div class="table-wrap">
+<table>
+<thead><tr><th>Lead</th><th>Origem</th><th>Plataforma</th><th>Status</th><th>Etapa</th><th>Vendedor</th><th></th></tr></thead>
+<tbody id="myLeadRows"></tbody>
+</table>
+</div>
+</div>
+</div>
+</div>
+
+<div class="card" id="proxAcaoCard"></div>
+</div>
+</section>
