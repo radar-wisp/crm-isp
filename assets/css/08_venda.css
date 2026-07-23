@@ -15,7 +15,18 @@
 .fline{flex:1;min-width:24px;height:2px;background:var(--surface-line);margin:0 12px}
 .fline.on{background:var(--signal)}
 
-.flow-grid{display:grid;grid-template-columns:1.6fr 1fr;gap:18px;align-items:start}
+.flow-grid{display:flex;flex-direction:column;gap:18px}
+
+.pa-horizontal{display:flex;align-items:center;flex-wrap:wrap;gap:18px 24px;padding:14px 20px;margin-bottom:18px}
+.pa-horizontal .card-head{padding:0;border:none;flex:0 0 auto}
+.pa-horizontal .pa-item{padding:0;flex:1 1 300px;min-width:220px}
+.pa-horizontal .pa-foot{padding:0;flex:0 0 auto}
+.pa-horizontal .pa-hist{padding:0 0 0 18px;border-top:none;border-left:1px solid var(--surface-line);flex:1 1 220px}
+.pa-horizontal .pa-hist ul{flex-direction:row;flex-wrap:wrap;gap:8px 16px}
+.pa-horizontal .pa-edit{padding:0;flex:1 1 300px;flex-wrap:wrap;align-items:center}
+.pa-horizontal .pa-edit .pa-edit-foot{justify-content:flex-start}
+.pa-horizontal .pa-empty{padding:4px 0}
+@media(max-width:1080px){.pa-horizontal{flex-direction:column;align-items:stretch}.pa-horizontal .pa-hist{border-left:none;border-top:1px solid var(--surface-line);padding:12px 0 0}}
 .block{background:var(--surface);border:1px solid var(--surface-line);border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:18px}
 .block-head{display:flex;align-items:center;gap:11px;padding:16px 20px;border-bottom:1px solid var(--surface-line)}
 .block-head .bn{width:26px;height:26px;border-radius:8px;display:grid;place-items:center;font-size:12px;font-weight:700;background:rgba(14,165,183,.12);color:var(--accent);flex-shrink:0}
@@ -87,6 +98,6 @@
 .chk-prog .bar i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),var(--accent-2));border-radius:20px;transition:width .3s}
 .chk-prog b{font-size:12.5px;color:var(--body-strong);font-variant-numeric:tabular-nums}
 
-@media(max-width:1080px){.flow-grid{grid-template-columns:1fr}.plan-grid{grid-template-columns:1fr}}
+@media(max-width:1080px){.plan-grid{grid-template-columns:1fr}}
 @media(max-width:520px){.send-row{grid-template-columns:1fr}}
 
