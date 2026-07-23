@@ -1,0 +1,17 @@
+/* ==============================================================
+ * Reset global e variáveis de design (:root)
+ * Extraído do <style> original de index.html (bloco contíguo,
+ * ordem preservada — nenhuma regra foi reescrita ou reordenada).
+ * ============================================================== */
+:root{
+--ink:#0b1220;--panel:#0f1a2b;--line:#1e2c42;--muted:#7d8ba3;--text:#e8edf6;
+--bg:#f5f7fa;--surface:#ffffff;--surface-line:#e7ecf2;--body:#334155;--body-strong:#0f172a;
+--accent:#0ea5b7;--accent-2:#14c8dd;--signal:#22c55e;--warn:#f59e0b;--danger:#ef4444;--violet:#7c5cf6;
+--radius:14px;--shadow:0 1px 2px rgba(15,23,42,.06),0 8px 24px -12px rgba(15,23,42,.18);
+--sw:264px;--sw-collapsed:78px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%}
+body{font-family:"Segoe UI",system-ui,-apple-system,Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--body);-webkit-font-smoothing:antialiased}
+button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+input{font-family:inherit}
