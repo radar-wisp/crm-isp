@@ -290,7 +290,7 @@ const preview=selFunil?selFunil.etapas.map(e=>'<div class="col" style="min-width
 const previewCard='<div class="card"><div class="card-head"><h3>Pré-visualização do funil</h3><span class="count">Ilustrativo · <b>'+esc(selFunil?selFunil.nome:'—')+'</b></span></div>'+
 '<div style="padding:18px 20px"><div class="board">'+preview+'</div></div></div>';
 
-panel.innerHTML=topSelector+motorCard+previewCard;
+panel.innerHTML=topSelector+previewCard+motorCard;
 attachFunisEvents();
 }
 
@@ -381,14 +381,14 @@ const funilOverlay=document.getElementById('funilOverlay');
 let funilEditIdx=null;
 function rgSet(id,val){document.querySelectorAll('#'+id+' .radio-opt').forEach(o=>o.classList.toggle('sel',o.dataset.val===val));}
 function rgVal(id){const s=document.querySelector('#'+id+' .radio-opt.sel');return s?s.dataset.val:'';}
-document.querySelectorAll('#funTipoRG .radio-opt,#funStatusRG .radio-opt,#funVisRG .radio-opt').forEach(opt=>opt.addEventListener('click',()=>{opt.parentElement.querySelectorAll('.radio-opt').forEach(o=>o.classList.remove('sel'));opt.classList.add('sel');}));
+document.querySelectorAll('#funStatusRG .radio-opt').forEach(opt=>opt.addEventListener('click',()=>{opt.parentElement.querySelectorAll('.radio-opt').forEach(o=>o.classList.remove('sel'));opt.classList.add('sel');}));
 function openFunilModal(idx){
 funilEditIdx=idx;
-const f=idx!=null?FUNIS[idx]:{nome:'',descricao:'',tipo:'Pessoa Física',status:'Ativo',visualizacao:'Kanban'};
+const f=idx!=null?FUNIS[idx]:{nome:'',descricao:'',tipo:'Pessoa Física',status:'Ativo'};
 document.getElementById('funilModalTitle').textContent=idx==null?'Novo Funil':'Editar Funil';
 document.getElementById('funNome').value=f.nome;
 document.getElementById('funDescricao').value=f.descricao;
-rgSet('funTipoRG',f.tipo);rgSet('funStatusRG',f.status);rgSet('funVisRG',f.visualizacao);
+document.getElementById('funTipo').value=f.tipo;rgSet('funStatusRG',f.status);
 funilOverlay.classList.add('open');
 }
 function closeFunilModal(){funilOverlay.classList.remove('open')}
@@ -399,7 +399,7 @@ document.getElementById('funilSave').addEventListener('click',()=>{
 const nome=document.getElementById('funNome').value.trim();
 if(!nome){document.getElementById('funNome').classList.add('err');return}
 document.getElementById('funNome').classList.remove('err');
-const rec={nome:nome,descricao:document.getElementById('funDescricao').value.trim(),tipo:rgVal('funTipoRG'),status:rgVal('funStatusRG'),visualizacao:rgVal('funVisRG')};
+const rec={nome:nome,descricao:document.getElementById('funDescricao').value.trim(),tipo:document.getElementById('funTipo').value,status:rgVal('funStatusRG')};
 if(funilEditIdx==null){rec.etapas=[];FUNIS.push(rec);funilSelIdx=FUNIS.length-1;}
 else{Object.assign(FUNIS[funilEditIdx],rec);}
 closeFunilModal();renderFunisPanel();
@@ -467,7 +467,6 @@ document.getElementById('tipoModalTitle').textContent=idx==null?'Novo Tipo':'Edi
 document.getElementById('tipNome').value=t.nome;
 document.getElementById('tipDescricao').value=t.descricao;
 document.getElementById('tipCor').value=t.cor;
-document.getElementById('tipIcone').value=t.icone;
 document.getElementById('tipObjetivo').value=t.objetivo||'';
 document.getElementById('tipExemplos').value=(t.exemplos||[]).join(', ');
 rgSet('tipStatusRG',t.status);
@@ -482,7 +481,7 @@ const nome=document.getElementById('tipNome').value.trim();
 if(!nome){document.getElementById('tipNome').classList.add('err');return}
 document.getElementById('tipNome').classList.remove('err');
 const exemplos=document.getElementById('tipExemplos').value.split(',').map(s=>s.trim()).filter(Boolean);
-const rec={nome:nome,descricao:document.getElementById('tipDescricao').value.trim(),cor:document.getElementById('tipCor').value,icone:document.getElementById('tipIcone').value.trim()||'●',objetivo:document.getElementById('tipObjetivo').value.trim(),exemplos:exemplos,status:rgVal('tipStatusRG')};
+const rec={nome:nome,descricao:document.getElementById('tipDescricao').value.trim(),cor:document.getElementById('tipCor').value,icone:(tipoEditIdx!=null?TIPOS_ETAPA[tipoEditIdx].icone:'')||'●',objetivo:document.getElementById('tipObjetivo').value.trim(),exemplos:exemplos,status:rgVal('tipStatusRG')};
 if(tipoEditIdx==null)TIPOS_ETAPA.push(rec);else Object.assign(TIPOS_ETAPA[tipoEditIdx],rec);
 closeTipoModal();renderFunisPanel();
 });
