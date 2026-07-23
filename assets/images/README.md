@@ -1,0 +1,7 @@
+[README.md](https://github.com/user-attachments/files/30307419/README.md)
+Pasta reservada para imagens estáticas (fotos, ilustrações, etc.).
+
+Hoje a aplicação não usa nenhuma imagem externa — todos os ícones são
+SVG embutido diretamente no HTML de cada tela. Esta pasta existe para
+seguir a estrutura profissional solicitada e para receber imagens que
+venham a ser adicionadas no futuro.
