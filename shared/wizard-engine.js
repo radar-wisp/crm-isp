@@ -25,15 +25,30 @@ if(group.dataset.radio==='contrato'||group.dataset.radio==='envio')updateSidebar
 });
 });
 });
-const PLANOS={
-fibra:['Fibra 300 Mega — R$ 79,90','Fibra 500 Mega — R$ 99,90','Fibra 1 Giga — R$ 249,90'],
-wireless:['Wireless 100 Mega — R$ 69,90','Wireless 200 Mega — R$ 89,90','Wireless 300 Mega — R$ 119,90'],
-streaming:['Radar Play — R$ 19,90','Combo Play+ — R$ 29,90'],
-gamer:['Radar Games — R$ 29,90','Combo Games+ — R$ 39,90']
-};
+/* Planos exibidos aqui vêm de Configurações > Planos (CFG.plan), filtrados
+ * por categoria e por status "Ativo" — mudanças feitas em Configurações
+ * refletem automaticamente no Fluxo da Venda. */
+const CATEGORIA_CFG={fibra:{tecnologia:'Fibra'},wireless:{tecnologia:'Wireless'},streaming:{tipo:'Streaming'},gamer:{tipo:'Streaming'}};
 const planoSelect=document.getElementById('planoSelect');
+/* Colaboradores (CFG.vend) + Grupo de planos (CFG.grupo): se o vendedor da
+ * lead estiver com "Limitação de planos = Sim" em Configurações, o wizard
+ * só oferece planos dos grupos liberados para ele. */
+function planosPermitidosVendedor(){
+const vends=(typeof CFG!=='undefined'&&CFG.vend)?CFG.vend.data:[];
+const v=curLead?vends.find(x=>x.nome===curLead.vend):null;
+if(!v||v.limitar!=='Sim')return null;
+const grupos=(typeof CFG!=='undefined'&&CFG.grupo)?CFG.grupo.data:[];
+const nomes=new Set();
+(v.planos||[]).forEach(g=>{const gr=grupos.find(x=>x.grupo===g);if(gr)(gr.planos||[]).forEach(p=>nomes.add(p));});
+return nomes;
+}
 function fillPlanos(cat){
-planoSelect.innerHTML=(PLANOS[cat]||[]).map(p=>'<option>'+p+'</option>').join('');
+const crit=CATEGORIA_CFG[cat]||{};
+const source=(typeof CFG!=='undefined'&&CFG.plan)?CFG.plan.data:[];
+let list=source.filter(p=>p.status==='Ativo'&&Object.keys(crit).every(k=>p[k]===crit[k]));
+const permitidos=planosPermitidosVendedor();
+if(permitidos)list=list.filter(p=>permitidos.has(p.plano));
+planoSelect.innerHTML=list.length?list.map(p=>'<option>'+p.plano+' — '+p.valor+'</option>').join(''):'<option value="">Nenhum plano cadastrado</option>';
 updateSidebar();
 }
 fillPlanos('fibra');
@@ -47,10 +62,24 @@ const sum=digits.reduce((a,b)=>a+b,0);
 const r=sum%3;
 return r===0?'ok':r===1?'amp':'sem';
 }
+/* Área de vendas (CFG.area): se o endereço informado bater com alguma área
+ * cadastrada em Configurações, a cobertura é considerada disponível. Sem
+ * correspondência, mantém a simulação padrão (comportamento original). */
+function coberturaPorAreaCfg(){
+const areas=(typeof CFG!=='undefined'&&CFG.area)?CFG.area.data:[];
+const map=(typeof AREA_MAP!=='undefined')?AREA_MAP:{};
+const vals={cep:document.getElementById('viabCep').value.trim(),cidade:document.getElementById('viabCidade').value.trim(),bairro:document.getElementById('viabBairro').value.trim(),logradouro:document.getElementById('viabLogradouro').value.trim()};
+return areas.some(a=>{
+const k=map[a.considerar];
+const need=k?(a[k]||'').trim().toLowerCase():'';
+const got=k?(vals[k]||'').toLowerCase():'';
+return need&&got&&got.indexOf(need)>-1;
+});
+}
 document.getElementById('btnViab').addEventListener('click',()=>{
 const cep=document.getElementById('viabCep').value.trim();
 const num=document.getElementById('viabNum').value.trim();
-coberturaStatus=computeCoverage(cep+num);
+coberturaStatus=coberturaPorAreaCfg()?'ok':computeCoverage(cep+num);
 viabResult.style.display='block';
 renderViab();
 });
@@ -171,12 +200,35 @@ return rua+', '+num+(compl?' ('+compl+')':'')+' — '+bairro+', '+cidade+'/'+uf+
 function coberturaTexto(){
 return coberturaStatus==='ok'?'Cobertura disponível':coberturaStatus==='amp'?'Ampliação de rede':coberturaStatus==='sem'?'Sem cobertura':'—';
 }
+function planoAtualNome(){return planoSelect.value?planoSelect.value.split(' — ')[0]:'';}
+/* Formas de pagamento (CFG.pagamento): mostra a mensalidade aplicável ao
+ * plano selecionado, priorizando formas limitadas a esse plano. */
+function formaPagamentoTexto(){
+const src=(typeof CFG!=='undefined'&&CFG.pagamento)?CFG.pagamento.data:[];
+const plano=planoAtualNome();
+const mens=src.filter(p=>p.tipo==='Mensalidade');
+const match=mens.find(p=>p.limitar==='Sim'&&(p.selplanos||[]).includes(plano))||mens.find(p=>p.limitar!=='Sim')||mens[0];
+return match?(match.descricao+' · '+match.cobranca+(match.parcelas?' · '+match.parcelas:'')):'—';
+}
+/* Campanhas promocionais (CFG.camp): mostra a campanha ativa hoje que se
+ * aplica ao plano selecionado, se houver. */
+function campanhaTexto(){
+const src=(typeof CFG!=='undefined'&&CFG.camp)?CFG.camp.data:[];
+const plano=planoAtualNome();
+const hoje=new Date().toISOString().slice(0,10);
+const ativa=src.find(c=>c.dtini<=hoje&&c.dtfim>=hoje&&(c.limitar!=='Sim'||(c.selplanos||[]).includes(plano)));
+if(!ativa)return 'Nenhuma campanha ativa';
+const desc=ativa.tipodesc==='Porcentagem'?ativa.descPct:ativa.descVal;
+return ativa.campanha+' ('+desc+(ativa.mensalidades?' · '+ativa.mensalidades+'x':'')+')';
+}
 function buildResumo(){
 const ck='<span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>';
 const items=[
 ['Cliente',document.getElementById('cadNome').value||'—'],
 ['Endereço',enderecoTexto()],
 ['Plano',planoSelect.value||'—'],
+['Forma de pagamento',formaPagamentoTexto()],
+['Campanha promocional',campanhaTexto()],
 ['Contrato',selText('contrato')],
 ['Status da assinatura',assinado?'Assinado':'Aguardando assinatura']
 ];
@@ -184,7 +236,18 @@ document.getElementById('resumoList').innerHTML=items.map(it=>'<li class="resumo
 document.querySelectorAll('#checklistList .check-item').forEach(li=>li.classList.remove('done'));
 }
 document.getElementById('wzLoss').addEventListener('click',()=>{
-if(curLead){curLead.stat=['Perdido','b-lost'];renderVenda();}
+if(curLead){
+const motivos=((typeof CFG!=='undefined'&&CFG.perda)?CFG.perda.data:[]).filter(m=>m.status==='Ativo').map(m=>m.motivo);
+let motivo='';
+if(motivos.length){
+const resp=prompt('Motivo da perda:\n'+motivos.map((m,i)=>(i+1)+'. '+m).join('\n'));
+const idx=resp?parseInt(resp):NaN;
+motivo=(!isNaN(idx)&&motivos[idx-1])?motivos[idx-1]:(resp||'');
+}
+curLead.stat=['Perdido','b-lost'];
+curLead.motivoPerda=motivo;
+renderVenda();
+}
 closeWizard();
 });
 document.getElementById('wzSave').addEventListener('click',()=>{
@@ -297,6 +360,8 @@ btnMaisInfo.lastChild.textContent='Mais Informações';
 enderecoBlock.style.display='none';
 btnEndereco.lastChild.textContent='Endereço';
 document.querySelector('[data-radio="envio"] .radio-opt[data-val="whatsapp"]').click();
+const catSel=document.querySelector('[data-radio="categoria"] .radio-opt.sel');
+fillPlanos(catSel?catSel.dataset.val:'fibra');
 viabResult.style.display='none';step1ok=false;coberturaStatus=null;
 assinado=false;contratoEnviado=false;
 envioMsg.style.display='none';
