@@ -366,9 +366,31 @@ viabResult.style.display='none';step1ok=false;coberturaStatus=null;
 assinado=false;contratoEnviado=false;
 envioMsg.style.display='none';
 document.getElementById('assinUltimo').textContent='Nenhum envio realizado ainda';
+applyWzStepLabels();
 showStep(1);
 renderAssinatura();
 wzOverlay.classList.add('open');
+}
+/* Etapas do modal (Configurações > Funis de Venda > Etapas > Configuração
+ * das etapas): os títulos exibidos no stepper do Assistente de Venda
+ * passam a refletir as etapas ativas do funil selecionado em Fluxo da
+ * Venda (vFunilSelIdx), na ordem cadastrada. Sem etapas ativas suficientes,
+ * mantém o rótulo padrão da etapa correspondente (comportamento original). */
+const WZ_DEFAULT_LABELS=['Consultar Cobertura','Dados do Cliente','Plano e Contrato','Assinatura','Concluir Venda'];
+function wzEtapaLabels(){
+const funis=(typeof FUNIS!=='undefined')?FUNIS:[];
+const idx=(typeof vFunilSelIdx!=='undefined')?vFunilSelIdx:0;
+const f=funis[idx];
+if(!f)return WZ_DEFAULT_LABELS;
+const ativas=f.etapas.filter(e=>e.ativa==='Sim');
+return WZ_DEFAULT_LABELS.map((def,i)=>ativas[i]?ativas[i].nome:def);
+}
+function applyWzStepLabels(){
+const labels=wzEtapaLabels();
+for(let i=1;i<=5;i++){
+const el=document.querySelector('#wzs'+i+' .fl b');
+if(el)el.textContent=labels[i-1];
+}
 }
 function closeWizard(){wzOverlay.classList.remove('open')}
 document.getElementById('wzClose').addEventListener('click',closeWizard);
