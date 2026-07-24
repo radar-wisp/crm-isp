@@ -40,7 +40,7 @@ etapa('Contato de Retenção','#f59e0b','phone','Contato para entender o motivo'
 etapa('Oferta','#3b82f6','file-text','Oferta de retenção enviada','2 dias','Não','Sim','Sim',[],'Comercial'),
 etapa('Resolvido','#22c55e','flag','Caso finalizado','—','Sim','Sim','Não',[],'Finalizadora')]}
 ];
-const MASTER_CAMPOS=['Nome','CPF','CNPJ','Whatsapp','E-mail','Nome social','Nome fantasia','Data de fundação','Data de nascimento','Telefone secundário','Telefone comercial','Pai','Inscrição municipal','Mãe','Inscrição estadual','Endereço'];
+const MASTER_CAMPOS=['Nome','CPF','CNPJ','Whatsapp','E-mail','Nome social','Nome fantasia','Data de fundação','Data de nascimento','Telefone secundário','Telefone comercial','Pai','Inscrição municipal','Mãe','Inscrição estadual','Endereço','Plano','Contrato','Forma de envio','Assinatura','Conclusão'];
 const AUTO_ACOES=['Criar atividade','Criar Follow-up','Alterar Status','Enviar E-mail','Enviar WhatsApp','Gerar Auditoria','Criar Ordem de Serviço','Notificar Supervisor','Agendar Instalação','Criar Pendência'];
 const DEFAULT_CAMPOS_MAP={'Novo Lead':['Nome','Telefone','Origem'],'Contato':['Nome','Telefone'],'Qualificado':['Nome','CPF','Telefone'],'Viabilidade':['CEP','Endereço','Cidade','Bairro'],'Proposta':['Plano'],'Contrato':['Contrato','Documento','Assinatura'],'Assinado':['Assinatura']};
 const DEFAULT_ACOES_MAP={'Novo Lead':['Criar atividade'],'Proposta':['Enviar E-mail'],'Contrato':['Enviar E-mail','Gerar Auditoria'],'Assinado':['Criar Ordem de Serviço','Notificar Supervisor'],'Concluído':['Criar Pendência']};
