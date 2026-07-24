@@ -254,42 +254,17 @@
 <div style="display:flex;flex:1;min-height:0;overflow:hidden">
 <div class="cfg-form" id="etapaForm" style="flex:1;min-width:0">
 <div class="fg"><label>Nome</label><input type="text" id="etpNome" placeholder="Ex.: Qualificado"></div>
-<div class="cfg-field"><label class="cfg-flabel">Tipo da Etapa</label><div class="select"><select id="etpTipo"></select><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg></div></div>
 <div class="fg"><label>Cor</label><input type="color" id="etpCor" value="#0ea5b7" style="width:100%;height:42px;border:1px solid var(--surface-line);border-radius:10px;padding:3px;background:#fbfcfe;cursor:pointer"></div>
 <div class="cfg-field"><label class="cfg-flabel">Ícone</label><div class="radio-group" id="etpIconeRG"><div class="radio-opt sel" data-val="user-plus"><span class="rd"></span>Lead</div><div class="radio-opt" data-val="phone"><span class="rd"></span>Contato</div><div class="radio-opt" data-val="check"><span class="rd"></span>Check</div><div class="radio-opt" data-val="map-pin"><span class="rd"></span>Local</div><div class="radio-opt" data-val="file-text"><span class="rd"></span>Documento</div><div class="radio-opt" data-val="flag"><span class="rd"></span>Conclusão</div></div></div>
-<div class="fg"><label>Descrição</label><input type="text" id="etpDescricao" placeholder="Ex.: Lead qualificado para negociação"></div>
-<div class="fg"><label>Prazo máximo (SLA)</label><input type="text" id="etpSla" placeholder="Ex.: 2 dias"></div>
 <div class="cfg-field"><label class="cfg-flabel">Etapa obrigatória</label><div class="radio-group" id="etpObrigRG"><div class="radio-opt sel" data-val="Sim"><span class="rd"></span>Sim</div><div class="radio-opt" data-val="Não"><span class="rd"></span>Não</div></div></div>
 <div class="cfg-field"><label class="cfg-flabel">Etapa ativa</label><div class="radio-group" id="etpAtivaRG"><div class="radio-opt sel" data-val="Sim"><span class="rd"></span>Sim</div><div class="radio-opt" data-val="Não"><span class="rd"></span>Não</div></div></div>
 <div class="cfg-field"><label class="cfg-flabel">Permitir avançar para qualquer etapa</label><div class="radio-group" id="etpAvancarRG"><div class="radio-opt" data-val="Sim"><span class="rd"></span>Sim</div><div class="radio-opt sel" data-val="Não"><span class="rd"></span>Não</div></div></div>
 <div class="cfg-field"><label class="cfg-flabel">Campos obrigatórios para concluir a etapa</label><div class="cfg-checks" id="etpCamposCk"><label class="cfg-check-item" data-val="Nome"><span class="cbox"></span>Nome</label><label class="cfg-check-item" data-val="CPF"><span class="cbox"></span>CPF</label><label class="cfg-check-item" data-val="Telefone"><span class="cbox"></span>Telefone</label><label class="cfg-check-item" data-val="Endereço"><span class="cbox"></span>Endereço</label><label class="cfg-check-item" data-val="Plano"><span class="cbox"></span>Plano</label><label class="cfg-check-item" data-val="Contrato"><span class="cbox"></span>Contrato</label><label class="cfg-check-item" data-val="Assinatura"><span class="cbox"></span>Assinatura</label></div></div>
 </div>
-<div id="tipoResumoPanel" style="width:230px;flex-shrink:0;border-left:1px solid var(--surface-line);padding:18px 18px;overflow-y:auto;background:#fafbfd">
-<div style="font-size:11.5px;font-weight:700;color:#68758a;text-transform:uppercase;letter-spacing:.4px;margin-bottom:14px">Resumo do Tipo</div>
-<div id="tipoResumoContent"></div>
-</div>
 </div>
 <div class="cfg-modal-foot">
 <button class="btn-ghost" id="etapaCancel">Cancelar</button>
 <button class="btn-primary" id="etapaSave"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>Salvar</button>
-</div>
-</div>
-</div>
-
-<div class="modal-overlay" id="tipoOverlay">
-<div class="cfgmodal">
-<div class="modal-top"><b id="tipoModalTitle" style="font-size:15px;color:var(--body-strong)">Novo Tipo</b><button class="modal-close" id="tipoCloseBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
-<div class="cfg-form" id="tipoForm">
-<div class="fg"><label>Nome</label><input type="text" id="tipNome" placeholder="Ex.: Comercial"></div>
-<div class="fg"><label>Descrição</label><input type="text" id="tipDescricao" placeholder="Ex.: Etapas relacionadas ao contato e negociação comercial."></div>
-<div class="fg"><label>Cor</label><input type="color" id="tipCor" value="#3b82f6" style="width:100%;height:42px;border:1px solid var(--surface-line);border-radius:10px;padding:3px;background:#fbfcfe;cursor:pointer"></div>
-<div class="fg"><label>Objetivo</label><input type="text" id="tipObjetivo" placeholder="Ex.: Conduzir o contato e a negociação comercial com o cliente."></div>
-<div class="fg"><label>Exemplos de utilização <span class="opt">(separados por vírgula)</span></label><input type="text" id="tipExemplos" placeholder="Ex.: Novo Lead, Contato, Negociação"></div>
-<div class="cfg-field"><label class="cfg-flabel">Status</label><div class="radio-group" id="tipStatusRG"><div class="radio-opt sel" data-val="Ativo"><span class="rd"></span>Ativo</div><div class="radio-opt" data-val="Inativo"><span class="rd"></span>Inativo</div></div></div>
-</div>
-<div class="cfg-modal-foot">
-<button class="btn-ghost" id="tipoCancel">Cancelar</button>
-<button class="btn-primary" id="tipoSave"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>Salvar</button>
 </div>
 </div>
 </div>
