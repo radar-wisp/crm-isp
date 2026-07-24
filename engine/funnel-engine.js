@@ -378,17 +378,16 @@ closeFunilModal();renderFunisPanel();
 /* Modal Etapa */
 const etapaOverlay=document.getElementById('etapaOverlay');
 let etapaEditIdx=null;
-document.querySelectorAll('#etpIconeRG .radio-opt,#etpObrigRG .radio-opt,#etpAtivaRG .radio-opt,#etpAvancarRG .radio-opt').forEach(opt=>opt.addEventListener('click',()=>{opt.parentElement.querySelectorAll('.radio-opt').forEach(o=>o.classList.remove('sel'));opt.classList.add('sel');}));
-document.querySelectorAll('#etpCamposCk .cfg-check-item').forEach(ci=>ci.addEventListener('click',e=>{e.preventDefault();ci.classList.toggle('on');}));
+document.querySelectorAll('#etpObrigRG .radio-opt,#etpAtivaRG .radio-opt,#etpAvancarRG .radio-opt').forEach(opt=>opt.addEventListener('click',()=>{opt.parentElement.querySelectorAll('.radio-opt').forEach(o=>o.classList.remove('sel'));opt.classList.add('sel');}));
 function openEtapaModal(idx){
 etapaEditIdx=idx;
 const arr=FUNIS[funilSelIdx].etapas;
-const e=idx!=null?arr[idx]:{nome:'',cor:'#0ea5b7',icone:'user-plus',descricao:'',sla:'',obrigatoria:'Sim',ativa:'Sim',avancarQualquer:'Não',campos:[],tipo:''};
+const e=idx!=null?arr[idx]:{nome:'',cor:'#0ea5b7',descricao:'',sla:'',obrigatoria:'Sim',ativa:'Sim',avancarQualquer:'Não',tipo:''};
 document.getElementById('etapaModalTitle').textContent=idx==null?'Nova Etapa':'Editar Etapa';
 document.getElementById('etpNome').value=e.nome;
 document.getElementById('etpCor').value=e.cor;
-rgSet('etpIconeRG',e.icone);rgSet('etpObrigRG',e.obrigatoria);rgSet('etpAtivaRG',e.ativa);rgSet('etpAvancarRG',e.avancarQualquer);
-document.querySelectorAll('#etpCamposCk .cfg-check-item').forEach(ci=>ci.classList.toggle('on',(e.campos||[]).includes(ci.dataset.val)));
+document.getElementById('etpSla').value=parseInt(e.sla)||'';
+rgSet('etpObrigRG',e.obrigatoria);rgSet('etpAtivaRG',e.ativa);rgSet('etpAvancarRG',e.avancarQualquer);
 etapaOverlay.classList.add('open');
 }
 function closeEtapaModal(){etapaOverlay.classList.remove('open')}
@@ -399,8 +398,8 @@ document.getElementById('etapaSave').addEventListener('click',()=>{
 const nome=document.getElementById('etpNome').value.trim();
 if(!nome){document.getElementById('etpNome').classList.add('err');return}
 document.getElementById('etpNome').classList.remove('err');
-const campos=[...document.querySelectorAll('#etpCamposCk .cfg-check-item.on')].map(x=>x.dataset.val);
-const rec={nome:nome,cor:document.getElementById('etpCor').value,icone:rgVal('etpIconeRG'),obrigatoria:rgVal('etpObrigRG'),ativa:rgVal('etpAtivaRG'),avancarQualquer:rgVal('etpAvancarRG'),campos:campos};
+const slaH=document.getElementById('etpSla').value.trim();
+const rec={nome:nome,cor:document.getElementById('etpCor').value,sla:slaH?slaH+' horas':'',obrigatoria:rgVal('etpObrigRG'),ativa:rgVal('etpAtivaRG'),avancarQualquer:rgVal('etpAvancarRG')};
 const arr=FUNIS[funilSelIdx].etapas;
 if(etapaEditIdx==null)arr.push(rec);else Object.assign(arr[etapaEditIdx],rec);
 closeEtapaModal();renderFunisPanel();
