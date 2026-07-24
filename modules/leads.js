@@ -49,3 +49,36 @@ pgPrev.addEventListener('click',()=>{if(curPage>1){curPage--;renderLeads()}});
 pgNext.addEventListener('click',()=>{curPage++;renderLeads()});
 renderLeads();
 
+/* Modal Novo Lead */
+const leadOverlay=document.getElementById('leadOverlay');
+function openLeadModal(){
+document.getElementById('ldNome').value='';
+document.getElementById('ldTelefone').value='';
+document.getElementById('ldEmail').value='';
+document.getElementById('ldOrigem').value='Indicação de cliente';
+document.getElementById('ldNome').classList.remove('err');
+leadOverlay.classList.add('open');
+}
+function closeLeadModal(){leadOverlay.classList.remove('open')}
+document.getElementById('btnNovoLead').addEventListener('click',openLeadModal);
+document.getElementById('leadCloseBtn').addEventListener('click',closeLeadModal);
+document.getElementById('leadCancel').addEventListener('click',closeLeadModal);
+leadOverlay.addEventListener('click',e=>{if(e.target===leadOverlay)closeLeadModal()});
+document.getElementById('leadSave').addEventListener('click',()=>{
+const nome=document.getElementById('ldNome').value.trim();
+if(!nome){document.getElementById('ldNome').classList.add('err');return}
+document.getElementById('ldNome').classList.remove('err');
+const partes=nome.split(' ').filter(Boolean);
+const ini=((partes[0]||'')[0]||'')+((partes[partes.length-1]||'')[0]||'');
+const hoje=new Date();
+const data=String(hoje.getDate()).padStart(2,'0')+'/'+String(hoje.getMonth()+1).padStart(2,'0')+'/'+hoje.getFullYear();
+LEADS.unshift({
+name:nome,ini:ini.toUpperCase(),grad:pk(GRAD),
+phone:document.getElementById('ldTelefone').value.trim(),
+plat:'wa',orig:document.getElementById('ldOrigem').value,
+camp:'—',stat:STAT[0],vend:'—',data:data,
+email:document.getElementById('ldEmail').value.trim()
+});
+closeLeadModal();curPage=1;renderLeads();
+});
+
