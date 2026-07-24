@@ -298,6 +298,7 @@ return;
 if(step===1&&!step1ok)return;
 if(step===3&&!contratoEnviado)return;
 if(step===4&&!assinado)return;
+if(!wzChecarAvanco())return;
 if(curLead)curLead.fstage=step;
 showStep(step+1);
 });
@@ -320,7 +321,15 @@ document.getElementById('sumVendedor').textContent=curLead.vend||'—';
 const pa=document.getElementById('wzProxAcaoTxt');
 if(pa)pa.textContent=proxAcaoWizardTexto();
 }
+const WZ_PA_ICO={'Ligação':'📞','WhatsApp':'💬','E-mail':'📧','Tarefa':'📝','Visita':'📍','Outro':'📌'};
 function proxAcaoWizardTexto(){
+const e=wzCurEtapa();
+if(e&&e.proximasAcoes&&e.proximasAcoes.length){
+const pa=e.proximasAcoes[0];
+const modelo=(typeof PROX_ACOES!=='undefined')?PROX_ACOES.find(p=>p.nome===pa.acao):null;
+const tipo=modelo?modelo.tipo:'Outro';
+return (WZ_PA_ICO[tipo]||'📌')+' '+pa.acao+' — prazo: '+pa.prazo;
+}
 if(step===1)return coberturaStatus?'📞 Ligar para o cliente às 18:00':'📍 Consultar cobertura no endereço do cliente';
 if(step===2)return '📞 Ligar para o cliente às 18:00';
 if(step===3)return contratoEnviado?'⌛ Aguardar assinatura do contrato':'📄 Enviar contrato';
@@ -391,6 +400,49 @@ for(let i=1;i<=5;i++){
 const el=document.querySelector('#wzs'+i+' .fl b');
 if(el)el.textContent=labels[i-1];
 }
+}
+/* Etapa do funil (Configurações > Funis de Venda > Motor do Funil) que
+ * corresponde à etapa atual do wizard, usada para checar Campos
+ * obrigatórios, Validações, Fluxo e Próximas Ações dinamicamente. */
+function wzCurEtapa(){
+const funis=(typeof FUNIS!=='undefined')?FUNIS:[];
+const f=funis[(typeof vFunilSelIdx!=='undefined')?vFunilSelIdx:0];
+if(!f)return null;
+const ativas=f.etapas.filter(e=>e.ativa==='Sim');
+return ativas[step-1]||null;
+}
+const WZ_CAMPO_CHECK={'Nome':()=>!!document.getElementById('cadNome').value.trim(),'CPF':()=>!!document.getElementById('cadCpf').value.trim(),'CNPJ':()=>!!document.getElementById('cadCpf').value.trim(),'Whatsapp':()=>!!document.getElementById('cadTel1').value.trim(),'E-mail':()=>!!document.getElementById('cadEmail').value.trim(),'Endereço':()=>!!document.getElementById('cadLogradouro').value.trim(),'Plano':()=>!!planoSelect.value,'Contrato':()=>!!document.querySelector('[data-radio="contrato"] .radio-opt.sel'),'Forma de envio':()=>!!document.querySelector('[data-radio="envio"] .radio-opt.sel'),'Assinatura':()=>assinado};
+const WZ_VALID_CHECK={'Nome obrigatório':()=>!!document.getElementById('cadNome').value.trim(),'CPF obrigatório':()=>!!document.getElementById('cadCpf').value.trim(),'Telefone principal obrigatório':()=>!!document.getElementById('cadTel1').value.trim(),'E-mail obrigatório':()=>!!document.getElementById('cadEmail').value.trim(),'Endereço obrigatório':()=>!!document.getElementById('cadLogradouro').value.trim(),'Plano selecionado':()=>!!planoSelect.value,'Contrato selecionado':()=>!!document.querySelector('[data-radio="contrato"] .radio-opt.sel'),'Viabilidade obrigatória':()=>!!coberturaStatus,'Cobertura aprovada':()=>coberturaStatus==='ok'||coberturaStatus==='amp','Contrato enviado':()=>contratoEnviado,'Contrato assinado':()=>assinado};
+function wzPendencias(e,map,campo){return e&&e[campo]?e[campo].filter(k=>map[k]&&!map[k]()):[];}
+/* Fluxo (Configurações > Funis de Venda > Motor do Funil > Fluxo): só
+ * permite avançar se a próxima etapa ativa constar em avancarPara. */
+function wzFluxoPermite(e){
+if(!e||!e.avancarPara)return true;
+const funis=(typeof FUNIS!=='undefined')?FUNIS:[];
+const f=funis[(typeof vFunilSelIdx!=='undefined')?vFunilSelIdx:0];
+if(!f)return true;
+const ativas=f.etapas.filter(x=>x.ativa==='Sim');
+const next=ativas[step];
+return next?e.avancarPara.includes(next.nome):true;
+}
+/* Checagem executada ao clicar "Continuar"/"Prosseguir" dentro do wizard,
+ * antes das regras internas de cada etapa (comportamento original
+ * preservado). Reflete Campos obrigatórios, Validações e Fluxo
+ * configurados em Configurações > Funis de Venda > Motor do Funil. */
+function wzChecarAvanco(){
+const e=wzCurEtapa();
+if(!e)return true;
+const camposPend=wzPendencias(e,WZ_CAMPO_CHECK,'camposAvanco');
+if(camposPend.length){alert('Preencha os campos obrigatórios para avançar: '+camposPend.join(', '));return false;}
+const validPend=wzPendencias(e,WZ_VALID_CHECK,'validacoes');
+if(validPend.length){
+const acao=e.validacaoAcao||'Bloquear avanço';
+if(acao==='Bloquear avanço'){alert('Não é possível avançar. Pendências de validação: '+validPend.join(', '));return false;}
+if(acao==='Solicitar aprovação'&&!confirm('Validações pendentes: '+validPend.join(', ')+'. Solicitar aprovação e avançar mesmo assim?'))return false;
+if(acao==='Criar pendência')alert('Pendência registrada: '+validPend.join(', ')+'. A venda seguirá com pendências em aberto.');
+}
+if(!wzFluxoPermite(e)){alert('O fluxo configurado para esta etapa não permite avançar para a próxima.');return false;}
+return true;
 }
 function closeWizard(){wzOverlay.classList.remove('open')}
 document.getElementById('wzClose').addEventListener('click',closeWizard);
