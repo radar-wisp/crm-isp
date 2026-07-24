@@ -40,7 +40,7 @@ etapa('Contato de Retenção','#f59e0b','phone','Contato para entender o motivo'
 etapa('Oferta','#3b82f6','file-text','Oferta de retenção enviada','2 dias','Não','Sim','Sim',[],'Comercial'),
 etapa('Resolvido','#22c55e','flag','Caso finalizado','—','Sim','Sim','Não',[],'Finalizadora')]}
 ];
-const MASTER_CAMPOS=['Nome','CPF','Telefone','Origem','Endereço','CEP','Cidade','Bairro','Plano','Fidelidade','Contrato','Documento','Assinatura'];
+const MASTER_CAMPOS=['Nome','CPF','CNPJ','Whatsapp','E-mail','Nome social','Nome fantasia','Data de fundação','Data de nascimento','Telefone secundário','Telefone comercial','Pai','Inscrição municipal','Mãe','Inscrição estadual','Endereço'];
 const AUTO_ACOES=['Criar atividade','Criar Follow-up','Alterar Status','Enviar E-mail','Enviar WhatsApp','Gerar Auditoria','Criar Ordem de Serviço','Notificar Supervisor','Agendar Instalação','Criar Pendência'];
 const DEFAULT_CAMPOS_MAP={'Novo Lead':['Nome','Telefone','Origem'],'Contato':['Nome','Telefone'],'Qualificado':['Nome','CPF','Telefone'],'Viabilidade':['CEP','Endereço','Cidade','Bairro'],'Proposta':['Plano'],'Contrato':['Contrato','Documento','Assinatura'],'Assinado':['Assinatura']};
 const DEFAULT_ACOES_MAP={'Novo Lead':['Criar atividade'],'Proposta':['Enviar E-mail'],'Contrato':['Enviar E-mail','Gerar Auditoria'],'Assinado':['Criar Ordem de Serviço','Notificar Supervisor'],'Concluído':['Criar Pendência']};
@@ -88,37 +88,12 @@ let funilSelIdx=0;
 let motorTab='funis';
 let validEtapaIdx=0;
 
-let TIPOS_ETAPA=[
-{nome:'Comercial',descricao:'Etapas relacionadas ao contato e negociação comercial.',cor:'#3b82f6',icone:'',status:'Ativo',objetivo:'Conduzir o contato e a negociação comercial com o cliente.',exemplos:['Novo Lead','Contato','Negociação']},
-{nome:'Qualificação',descricao:'Etapas responsáveis por validar o interesse do cliente.',cor:'#7c5cf6',icone:'',status:'Ativo',objetivo:'Validar o interesse e o potencial de compra do cliente.',exemplos:['Qualificado','Diagnóstico']},
-{nome:'Técnica',descricao:'Etapas relacionadas à análise técnica e viabilidade.',cor:'#f97316',icone:'',status:'Ativo',objetivo:'Validar se existe cobertura para atendimento.',exemplos:['Viabilidade','Ampliação de Rede','Vistoria']},
-{nome:'Contratual',descricao:'Etapas responsáveis pelo envio e assinatura do contrato.',cor:'#22c55e',icone:'',status:'Ativo',objetivo:'Formalizar o envio e a assinatura do contrato.',exemplos:['Contrato Enviado','Contrato Assinado']},
-{nome:'Financeira',descricao:'Etapas relacionadas à aprovação financeira.',cor:'#f59e0b',icone:'',status:'Ativo',objetivo:'Validar a aprovação financeira da proposta.',exemplos:['Análise de Crédito','Aprovação Financeira']},
-{nome:'Instalação',descricao:'Etapas referentes ao agendamento e execução da instalação.',cor:'#14c8dd',icone:'',status:'Ativo',objetivo:'Agendar e executar a instalação do serviço.',exemplos:['Instalação Agendada','Instalação Concluída']},
-{nome:'Finalizadora',descricao:'Etapas que encerram o processo.',cor:'#94a3b8',icone:'',status:'Ativo',objetivo:'Encerrar o processo de venda ou atendimento.',exemplos:['Venda Concluída','Perdido']}
-];
-
-function tipoByName(nome){return TIPOS_ETAPA.find(t=>t.nome===nome)}
-function tipoIndicator(nomeTipo){
-const t=tipoByName(nomeTipo);
-if(!t)return '<span style="color:#98a4b6;font-size:12.5px">—</span>';
-return '<span style="display:inline-flex;align-items:center;gap:7px;font-size:12.5px;color:var(--body)"><span style="width:11px;height:11px;border-radius:3px;background:'+t.cor+';display:inline-block;flex-shrink:0"></span>'+esc(t.nome)+'</span>';
-}
-function tipoRow(t,i){
-return '<tr><td><b style="color:var(--body-strong)">'+esc(t.nome)+'</b></td><td>'+esc(t.descricao)+'</td><td><span style="display:inline-flex;align-items:center;gap:8px"><i style="width:16px;height:16px;border-radius:5px;background:'+t.cor+';display:inline-block;flex-shrink:0"></i></span></td><td style="font-size:16px">'+t.icone+'</td><td>'+cfgBadge(t.status)+'</td><td><div class="cfg-acts"><button class="row-act" data-tipedit="'+i+'" title="Editar">'+editIco+'</button><button class="row-act del" data-tipdel="'+i+'" title="Excluir">'+delIco+'</button></div></td></tr>';
-}
-function renderTiposCard(){
-const rows=TIPOS_ETAPA.map((t,i)=>tipoRow(t,i)).join('');
-return '<div class="card" style="margin-bottom:18px" id="tiposCard"><div class="card-head"><h3>Tipos de Etapa</h3><button class="btn-primary" id="newTipoBtn">'+plusIco+'Novo Tipo</button></div>'+
-'<div class="table-wrap"><table class="cfg-table"><thead><tr><th>Nome</th><th>Descrição</th><th>Cor</th><th>Ícone</th><th>Status</th><th></th></tr></thead><tbody>'+rows+'</tbody></table></div></div>';
-}
-
 function funRow(f,i){
 return '<tr><td><b style="color:var(--body-strong)">'+esc(f.nome)+'</b><br><small style="color:#8a97ab;font-size:11.5px">'+esc(f.descricao)+'</small></td><td><span class="chip-soft">'+esc(f.tipo)+'</span></td><td>'+f.etapas.length+' etapa(s)</td><td>'+cfgBadge(f.status)+'</td><td><div class="cfg-acts"><button class="row-act" data-funsel="'+i+'" title="Configurar etapas">'+gearIco+'</button><button class="row-act" data-funedit="'+i+'" title="Editar">'+editIco+'</button><button class="row-act" data-fundup="'+i+'" title="Duplicar">'+dupIco+'</button><button class="row-act del" data-fundel="'+i+'" title="Excluir">'+delIco+'</button></div></td></tr>';
 }
 
 function etapaRow(f,e,i,total){
-return '<tr><td><b>'+(i+1)+'</b></td><td><span style="display:inline-flex;align-items:center;gap:8px"><i style="width:10px;height:10px;border-radius:3px;background:'+e.cor+';display:inline-block;flex-shrink:0"></i><b style="color:var(--body-strong)">'+esc(e.nome)+'</b></span></td><td>'+tipoIndicator(e.tipo)+'</td><td><i style="width:20px;height:20px;border-radius:6px;background:'+e.cor+';display:inline-block"></i></td><td>'+esc(e.sla)+'</td><td>'+(e.obrigatoria==='Sim'?'<span class="badge b-won">Sim</span>':'<span class="chip-soft">Não</span>')+'</td><td>'+(e.ativa==='Sim'?'<span class="badge b-won">Ativa</span>':'<span class="badge b-lost">Inativa</span>')+'</td><td><div class="cfg-acts"><button class="row-act" data-etpup="'+i+'" title="Subir"'+(i===0?' disabled style="opacity:.35;cursor:default"':'')+'>'+upIco+'</button><button class="row-act" data-etpdown="'+i+'" title="Descer"'+(i===total-1?' disabled style="opacity:.35;cursor:default"':'')+'>'+downIco+'</button><button class="row-act" data-etpedit="'+i+'" title="Editar">'+editIco+'</button><button class="row-act del" data-etpdel="'+i+'" title="Excluir">'+delIco+'</button></div></td></tr>';
+return '<tr><td><b>'+(i+1)+'</b></td><td><span style="display:inline-flex;align-items:center;gap:8px"><i style="width:10px;height:10px;border-radius:3px;background:'+e.cor+';display:inline-block;flex-shrink:0"></i><b style="color:var(--body-strong)">'+esc(e.nome)+'</b></span></td><td><i style="width:20px;height:20px;border-radius:6px;background:'+e.cor+';display:inline-block"></i></td><td>'+esc(e.sla)+'</td><td>'+(e.obrigatoria==='Sim'?'<span class="badge b-won">Sim</span>':'<span class="chip-soft">Não</span>')+'</td><td>'+(e.ativa==='Sim'?'<span class="badge b-won">Ativa</span>':'<span class="badge b-lost">Inativa</span>')+'</td><td><div class="cfg-acts"><button class="row-act" data-etpup="'+i+'" title="Subir"'+(i===0?' disabled style="opacity:.35;cursor:default"':'')+'>'+upIco+'</button><button class="row-act" data-etpdown="'+i+'" title="Descer"'+(i===total-1?' disabled style="opacity:.35;cursor:default"':'')+'>'+downIco+'</button><button class="row-act" data-etpedit="'+i+'" title="Editar">'+editIco+'</button><button class="row-act del" data-etpdel="'+i+'" title="Excluir">'+delIco+'</button></div></td></tr>';
 }
 
 function fluxoRow(f,e,i,total){
@@ -270,10 +245,8 @@ const tabFunis='<div class="card"><div class="card-head"><h3>Funis de venda</h3>
 '<div class="table-wrap"><table class="cfg-table"><thead><tr><th>Nome do Funil</th><th>Tipo</th><th>Qtd. Etapas</th><th>Status</th><th></th></tr></thead><tbody>'+listRows+'</tbody></table></div></div>';
 
 const etapasRows=selFunil?selFunil.etapas.map((e,i)=>etapaRow(selFunil,e,i,selFunil.etapas.length)).join(''):'';
-const legend='<div style="display:flex;flex-wrap:wrap;gap:14px;padding:14px 20px;border-top:1px solid var(--surface-line)">'+TIPOS_ETAPA.map(t=>'<span style="display:inline-flex;align-items:center;gap:6px;font-size:12.5px;color:var(--body)"><i style="width:10px;height:10px;border-radius:3px;background:'+t.cor+';display:inline-block;flex-shrink:0"></i>'+esc(t.nome)+'</span>').join('')+'</div>';
-const tabEtapas=renderTiposCard()+
-'<div class="card" style="margin-top:18px"><div class="card-head"><h3>Configuração das etapas</h3><button class="btn-primary" id="newEtapaBtn">'+plusIco+'Nova Etapa</button></div>'+
-'<div class="table-wrap"><table class="cfg-table"><thead><tr><th>Ordem</th><th>Nome da Etapa</th><th>Tipo</th><th>Cor</th><th>SLA</th><th>Obrigatória</th><th>Ativa</th><th></th></tr></thead><tbody>'+etapasRows+'</tbody></table></div>'+legend+'</div>';
+const tabEtapas='<div class="card"><div class="card-head"><h3>Configuração das etapas</h3><button class="btn-primary" id="newEtapaBtn">'+plusIco+'Nova Etapa</button></div>'+
+'<div class="table-wrap"><table class="cfg-table"><thead><tr><th>Ordem</th><th>Nome da Etapa</th><th>Cor</th><th>SLA</th><th>Obrigatória</th><th>Ativa</th><th></th></tr></thead><tbody>'+etapasRows+'</tbody></table></div></div>';
 
 const tabFluxo=renderFluxoCard(selFunil);
 const tabCampos=renderCamposTab(selFunil);
@@ -303,9 +276,6 @@ panel.querySelectorAll('[data-fundup]').forEach(b=>b.addEventListener('click',()
 panel.querySelectorAll('[data-fundel]').forEach(b=>b.addEventListener('click',()=>{const i=parseInt(b.dataset.fundel);if(confirm('Excluir este funil?')){FUNIS.splice(i,1);if(funilSelIdx>=FUNIS.length)funilSelIdx=Math.max(0,FUNIS.length-1);renderFunisPanel();}}));
 const fp=document.getElementById('funilAtualSelect');if(fp)fp.addEventListener('change',()=>{funilSelIdx=parseInt(fp.value);validEtapaIdx=0;renderFunisPanel();});
 panel.querySelectorAll('#motorTabs [data-tab]').forEach(b=>b.addEventListener('click',()=>{motorTab=b.dataset.tab;renderFunisPanel();}));
-const nt=document.getElementById('newTipoBtn');if(nt)nt.addEventListener('click',()=>openTipoModal(null));
-panel.querySelectorAll('[data-tipedit]').forEach(b=>b.addEventListener('click',()=>openTipoModal(parseInt(b.dataset.tipedit))));
-panel.querySelectorAll('[data-tipdel]').forEach(b=>b.addEventListener('click',()=>{const i=parseInt(b.dataset.tipdel);if(confirm('Excluir este tipo de etapa?')){TIPOS_ETAPA.splice(i,1);renderFunisPanel();}}));
 const ne=document.getElementById('newEtapaBtn');if(ne)ne.addEventListener('click',()=>openEtapaModal(null));
 panel.querySelectorAll('[data-etpup]').forEach(b=>b.addEventListener('click',()=>{const i=parseInt(b.dataset.etpup);if(i>0){const arr=FUNIS[funilSelIdx].etapas;[arr[i-1],arr[i]]=[arr[i],arr[i-1]];renderFunisPanel();}}));
 panel.querySelectorAll('[data-etpdown]').forEach(b=>b.addEventListener('click',()=>{const i=parseInt(b.dataset.etpdown);const arr=FUNIS[funilSelIdx].etapas;if(i<arr.length-1){[arr[i+1],arr[i]]=[arr[i],arr[i+1]];renderFunisPanel();}}));
@@ -410,18 +380,6 @@ const etapaOverlay=document.getElementById('etapaOverlay');
 let etapaEditIdx=null;
 document.querySelectorAll('#etpIconeRG .radio-opt,#etpObrigRG .radio-opt,#etpAtivaRG .radio-opt,#etpAvancarRG .radio-opt').forEach(opt=>opt.addEventListener('click',()=>{opt.parentElement.querySelectorAll('.radio-opt').forEach(o=>o.classList.remove('sel'));opt.classList.add('sel');}));
 document.querySelectorAll('#etpCamposCk .cfg-check-item').forEach(ci=>ci.addEventListener('click',e=>{e.preventDefault();ci.classList.toggle('on');}));
-function updateTipoResumo(nomeTipo){
-const t=tipoByName(nomeTipo);
-const el=document.getElementById('tipoResumoContent');
-if(!t){el.innerHTML='<div style="font-size:12.5px;color:#98a4b6">Selecione um tipo para ver o resumo.</div>';return}
-el.innerHTML='<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px"><span style="font-size:22px;line-height:1">'+t.icone+'</span><b style="font-size:14px;color:var(--body-strong)">'+esc(t.nome)+'</b></div>'+
-'<div style="font-size:12.5px;color:var(--body);margin-bottom:14px">'+esc(t.descricao)+'</div>'+
-'<div style="display:flex;align-items:center;gap:8px;margin-bottom:14px"><span style="width:16px;height:16px;border-radius:5px;background:'+t.cor+';display:inline-block;flex-shrink:0"></span><span style="font-size:12px;color:#68758a">Cor do tipo</span></div>'+
-'<div style="font-size:11px;font-weight:700;color:#68758a;text-transform:uppercase;letter-spacing:.3px;margin-bottom:6px">Objetivo</div>'+
-'<div style="font-size:12.5px;color:var(--body);margin-bottom:14px">'+esc(t.objetivo||'—')+'</div>'+
-'<div style="font-size:11px;font-weight:700;color:#68758a;text-transform:uppercase;letter-spacing:.3px;margin-bottom:8px">Exemplo de utilização</div>'+
-'<div style="display:flex;flex-wrap:wrap;gap:6px">'+(t.exemplos&&t.exemplos.length?t.exemplos.map(x=>'<span class="chip-soft">'+esc(x)+'</span>').join(''):'<span style="font-size:12px;color:#98a4b6">—</span>')+'</div>';
-}
 function openEtapaModal(idx){
 etapaEditIdx=idx;
 const arr=FUNIS[funilSelIdx].etapas;
@@ -429,18 +387,10 @@ const e=idx!=null?arr[idx]:{nome:'',cor:'#0ea5b7',icone:'user-plus',descricao:''
 document.getElementById('etapaModalTitle').textContent=idx==null?'Nova Etapa':'Editar Etapa';
 document.getElementById('etpNome').value=e.nome;
 document.getElementById('etpCor').value=e.cor;
-document.getElementById('etpDescricao').value=e.descricao;
-document.getElementById('etpSla').value=e.sla;
 rgSet('etpIconeRG',e.icone);rgSet('etpObrigRG',e.obrigatoria);rgSet('etpAtivaRG',e.ativa);rgSet('etpAvancarRG',e.avancarQualquer);
 document.querySelectorAll('#etpCamposCk .cfg-check-item').forEach(ci=>ci.classList.toggle('on',(e.campos||[]).includes(ci.dataset.val)));
-const tipoSel=document.getElementById('etpTipo');
-const ativos=TIPOS_ETAPA.filter(t=>t.status==='Ativo');
-tipoSel.innerHTML=ativos.map(t=>'<option value="'+escA(t.nome)+'"'+(t.nome===e.tipo?' selected':'')+'>'+esc(t.icone)+' '+esc(t.nome)+'</option>').join('');
-if(!e.tipo&&ativos.length)tipoSel.value=ativos[0].nome;
-updateTipoResumo(tipoSel.value);
 etapaOverlay.classList.add('open');
 }
-document.getElementById('etpTipo').addEventListener('change',e=>updateTipoResumo(e.target.value));
 function closeEtapaModal(){etapaOverlay.classList.remove('open')}
 document.getElementById('etapaCloseBtn').addEventListener('click',closeEtapaModal);
 document.getElementById('etapaCancel').addEventListener('click',closeEtapaModal);
@@ -450,40 +400,10 @@ const nome=document.getElementById('etpNome').value.trim();
 if(!nome){document.getElementById('etpNome').classList.add('err');return}
 document.getElementById('etpNome').classList.remove('err');
 const campos=[...document.querySelectorAll('#etpCamposCk .cfg-check-item.on')].map(x=>x.dataset.val);
-const rec={nome:nome,cor:document.getElementById('etpCor').value,icone:rgVal('etpIconeRG'),descricao:document.getElementById('etpDescricao').value.trim(),sla:document.getElementById('etpSla').value.trim(),obrigatoria:rgVal('etpObrigRG'),ativa:rgVal('etpAtivaRG'),avancarQualquer:rgVal('etpAvancarRG'),campos:campos,tipo:document.getElementById('etpTipo').value};
+const rec={nome:nome,cor:document.getElementById('etpCor').value,icone:rgVal('etpIconeRG'),obrigatoria:rgVal('etpObrigRG'),ativa:rgVal('etpAtivaRG'),avancarQualquer:rgVal('etpAvancarRG'),campos:campos};
 const arr=FUNIS[funilSelIdx].etapas;
 if(etapaEditIdx==null)arr.push(rec);else Object.assign(arr[etapaEditIdx],rec);
 closeEtapaModal();renderFunisPanel();
-});
-
-/* Modal Tipo de Etapa */
-const tipoOverlay=document.getElementById('tipoOverlay');
-let tipoEditIdx=null;
-document.querySelectorAll('#tipStatusRG .radio-opt').forEach(opt=>opt.addEventListener('click',()=>{opt.parentElement.querySelectorAll('.radio-opt').forEach(o=>o.classList.remove('sel'));opt.classList.add('sel');}));
-function openTipoModal(idx){
-tipoEditIdx=idx;
-const t=idx!=null?TIPOS_ETAPA[idx]:{nome:'',descricao:'',cor:'#3b82f6',icone:'',objetivo:'',exemplos:[],status:'Ativo'};
-document.getElementById('tipoModalTitle').textContent=idx==null?'Novo Tipo':'Editar Tipo';
-document.getElementById('tipNome').value=t.nome;
-document.getElementById('tipDescricao').value=t.descricao;
-document.getElementById('tipCor').value=t.cor;
-document.getElementById('tipObjetivo').value=t.objetivo||'';
-document.getElementById('tipExemplos').value=(t.exemplos||[]).join(', ');
-rgSet('tipStatusRG',t.status);
-tipoOverlay.classList.add('open');
-}
-function closeTipoModal(){tipoOverlay.classList.remove('open')}
-document.getElementById('tipoCloseBtn').addEventListener('click',closeTipoModal);
-document.getElementById('tipoCancel').addEventListener('click',closeTipoModal);
-tipoOverlay.addEventListener('click',e=>{if(e.target===tipoOverlay)closeTipoModal()});
-document.getElementById('tipoSave').addEventListener('click',()=>{
-const nome=document.getElementById('tipNome').value.trim();
-if(!nome){document.getElementById('tipNome').classList.add('err');return}
-document.getElementById('tipNome').classList.remove('err');
-const exemplos=document.getElementById('tipExemplos').value.split(',').map(s=>s.trim()).filter(Boolean);
-const rec={nome:nome,descricao:document.getElementById('tipDescricao').value.trim(),cor:document.getElementById('tipCor').value,icone:(tipoEditIdx!=null?TIPOS_ETAPA[tipoEditIdx].icone:'')||'●',objetivo:document.getElementById('tipObjetivo').value.trim(),exemplos:exemplos,status:rgVal('tipStatusRG')};
-if(tipoEditIdx==null)TIPOS_ETAPA.push(rec);else Object.assign(TIPOS_ETAPA[tipoEditIdx],rec);
-closeTipoModal();renderFunisPanel();
 });
 
 /* Modal Próxima Ação (Biblioteca) */
