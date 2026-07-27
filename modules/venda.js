@@ -5,7 +5,10 @@
  * ============================================================ */
 const STAGES=[['Nova','#64748b'],['Viabilidade','var(--accent)'],['Cadastro','var(--violet)'],['Plano e contrato','var(--accent-2)'],['Assinatura','var(--warn)'],['Venda finalizada','var(--signal)']];
 const mineAll=LEADS.filter(l=>l.vend==='Renatha Loiola');
-mineAll.forEach((l,i)=>{l.fstage=l.stat[0]==='Novo'?0:1+(i%(STAGES.length-1))});
+/* A etapa inicial só é sorteada para leads que ainda não têm etapa.
+ * Leads restaurados do armazenamento (engine/storage.js) já trazem
+ * o fstage salvo e devem mantê-lo. */
+mineAll.forEach((l,i)=>{if(l.fstage==null)l.fstage=l.stat[0]==='Novo'?0:1+(i%(STAGES.length-1))});
 
 /* Metas e comissões (CFG.meta): acrescenta a meta do período ao subtítulo
  * já existente, cruzando com a função do vendedor em Colaboradores (CFG.vend). */
