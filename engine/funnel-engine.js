@@ -4,6 +4,10 @@
  * Extraído do <script> original (bloco contíguo, ordem de execução
  * preservada). Nenhuma linha de lógica foi reescrita.
  * ============================================================ */
+/* Converte prazos legados ("2 horas", "1 dia", "15 minutos") para hh:mm:ss e
+ * aplica máscara de relógio nos inputs de prazo (SLA e Próxima Ação). */
+function toClock(v){const s=String(v||'').trim();if(/^\d{1,2}:\d{2}:\d{2}$/.test(s))return s;const m=s.match(/(\d+)\s*(min|hora|dia)/i);if(!m)return '';const n=parseInt(m[1]);if(/min/i.test(m[2]))return '00:'+String(n).padStart(2,'0')+':00';return String(/dia/i.test(m[2])?n*24:n).padStart(2,'0')+':00:00'}
+function clockMask(el){if(!el||el.dataset.clock)return;el.dataset.clock='1';el.addEventListener('input',()=>{const d=el.value.replace(/\D/g,'').slice(0,6);el.value=d.replace(/^(\d{1,2})(\d{0,2})(\d{0,2})$/,(x,a,b,c)=>a+(b?':'+b:'')+(c?':'+c:''));});}
 function etapa(nome,cor,icone,descricao,sla,obrig,ativa,avancar,campos,tipo){return {nome,cor,icone,descricao,sla,obrigatoria:obrig,ativa,avancarQualquer:avancar,campos,tipo:tipo||''}}
 
 /* Ícones usados nesta aba. Definidos aqui (e não reaproveitados de
@@ -89,7 +93,7 @@ let motorTab='funis';
 let validEtapaIdx=0;
 
 function funRow(f,i){
-return '<tr><td><b style="color:var(--body-strong)">'+esc(f.nome)+'</b><br><small style="color:#8a97ab;font-size:11.5px">'+esc(f.descricao)+'</small></td><td><span class="chip-soft">'+esc(f.tipo)+'</span></td><td>'+f.etapas.length+' etapa(s)</td><td>'+cfgBadge(f.status)+'</td><td><div class="cfg-acts"><button class="row-act" data-funsel="'+i+'" title="Configurar etapas">'+gearIco+'</button><button class="row-act" data-funedit="'+i+'" title="Editar">'+editIco+'</button><button class="row-act" data-fundup="'+i+'" title="Duplicar">'+dupIco+'</button><button class="row-act del" data-fundel="'+i+'" title="Excluir">'+delIco+'</button></div></td></tr>';
+return '<tr><td><b style="color:var(--body-strong)">'+esc(f.nome)+'</b><br><small style="color:#8a97ab;font-size:11.5px">'+esc(f.descricao)+'</small></td><td>'+(f.tipo?'<span class="chip-soft">'+esc(f.tipo)+'</span>':'—')+'</td><td>'+f.etapas.length+' etapa(s)</td><td>'+cfgBadge(f.status)+'</td><td><div class="cfg-acts"><button class="row-act" data-funedit="'+i+'" title="Editar">'+editIco+'</button><button class="row-act" data-fundup="'+i+'" title="Duplicar">'+dupIco+'</button><button class="row-act del" data-fundel="'+i+'" title="Excluir">'+delIco+'</button></div></td></tr>';
 }
 
 function etapaRow(f,e,i,total){
@@ -110,8 +114,6 @@ function renderFluxoCard(f){
 if(!f)return '';
 const rows=f.etapas.map((e,i)=>fluxoRow(f,e,i,f.etapas.length)).join('');
 const fx=f.fluxo;
-const acoesOpts=['Criar atividade','Alterar Status','Enviar e-mail','Enviar WhatsApp','Registrar Auditoria'];
-const acoesHtml=acoesOpts.map(o=>'<label class="cfg-check-item'+(fx.acoes.includes(o)?' on':'')+'" data-fluxo-acao data-val="'+escA(o)+'"><span class="cbox"></span>'+esc(o)+'</label>').join('');
 return '<div class="card" style="margin-bottom:18px" id="fluxoCard">'+
 '<div class="card-head"><h3>Fluxo entre Etapas</h3></div>'+
 '<div style="padding:14px 20px 4px;font-size:13px;color:#8a97ab">Configure quais movimentações são permitidas entre as etapas deste funil.</div>'+
@@ -119,7 +121,6 @@ return '<div class="card" style="margin-bottom:18px" id="fluxoCard">'+
 '<div class="cfg-form" style="padding:18px 20px;border-top:1px solid var(--surface-line)">'+
 '<div class="cfg-field"><label class="cfg-flabel">Permitir retorno para etapa anterior</label><div class="radio-group" id="fluxoRetornoRG"><div class="radio-opt'+(fx.permitirRetorno==='Sim'?' sel':'')+'" data-val="Sim"><span class="rd"></span>Sim</div><div class="radio-opt'+(fx.permitirRetorno==='Não'?' sel':'')+'" data-val="Não"><span class="rd"></span>Não</div></div></div>'+
 '<div class="cfg-field"><label class="cfg-flabel">Permitir movimentação manual para qualquer etapa</label><div class="radio-group" id="fluxoManualRG"><div class="radio-opt'+(fx.permitirManual==='Sim'?' sel':'')+'" data-val="Sim"><span class="rd"></span>Sim</div><div class="radio-opt'+(fx.permitirManual==='Não'?' sel':'')+'" data-val="Não"><span class="rd"></span>Não</div></div></div>'+
-'<div class="cfg-field"><label class="cfg-flabel">Ao mover automaticamente para esta etapa</label><div class="cfg-checks" id="fluxoAcoesCk">'+acoesHtml+'</div></div>'+
 '</div>'+
 '<div class="cfg-modal-foot" style="justify-content:space-between;align-items:center">'+
 '<span id="fluxoSavedMsg" style="font-size:12.5px;color:var(--signal);font-weight:600;opacity:0;transition:.25s">Fluxo salvo com sucesso!</span>'+
@@ -148,7 +149,7 @@ function proxAcaoChip(etapaIdx,subIdx,pa){
 return '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;border:1.5px solid var(--surface-line);border-radius:10px;padding:9px 12px;background:#fbfcfe">'+
 '<b style="font-size:12.5px;color:var(--body-strong)">'+esc(pa.acao)+'</b>'+
 '<label style="display:flex;align-items:center;gap:6px;font-size:12px;color:#68758a;cursor:pointer"><input type="checkbox" data-pa-auto data-etapa="'+etapaIdx+'" data-sub="'+subIdx+'"'+(pa.criarAuto==='Sim'?' checked':'')+'>Criar automaticamente</label>'+
-'<div class="select sm" style="min-width:120px"><select data-pa-prazo data-etapa="'+etapaIdx+'" data-sub="'+subIdx+'">'+PA_PRAZOS.filter(x=>x!=='Personalizado').map(pz=>'<option value="'+escA(pz)+'"'+(pz===pa.prazo?' selected':'')+'>'+esc(pz)+'</option>').join('')+'</select><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg></div>'+
+'<div class="select sm" style="min-width:120px"><select data-pa-prazo data-etapa="'+etapaIdx+'" data-sub="'+subIdx+'">'+PA_PRAZOS.filter(x=>x!=='Personalizado').concat(PA_PRAZOS.includes(pa.prazo)?[]:[pa.prazo]).map(pz=>'<option value="'+escA(pz)+'"'+(pz===pa.prazo?' selected':'')+'>'+esc(pz)+'</option>').join('')+'</select><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg></div>'+
 '<div class="select sm" style="min-width:120px"><select data-pa-resp data-etapa="'+etapaIdx+'" data-sub="'+subIdx+'">'+PA_RESPONSAVEIS.map(r=>'<option value="'+escA(r)+'"'+(r===pa.responsavel?' selected':'')+'>'+esc(r)+'</option>').join('')+'</select><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg></div>'+
 '<button class="row-act del" data-pa-remove data-etapa="'+etapaIdx+'" data-sub="'+subIdx+'" title="Remover" style="margin-left:auto">'+delIco+'</button>'+
 '</div>';
@@ -341,7 +342,7 @@ const f=FUNIS[funilSelIdx];const panel=document.getElementById('cfg-funis');
 f.etapas.forEach((e,i)=>{e.avancarPara=[...panel.querySelectorAll('[data-fluxo-origin="'+i+'"].on')].map(x=>x.dataset.val);});
 const retornoSel=panel.querySelector('#fluxoRetornoRG .radio-opt.sel');
 const manualSel=panel.querySelector('#fluxoManualRG .radio-opt.sel');
-f.fluxo={permitirRetorno:retornoSel?retornoSel.dataset.val:'Não',permitirManual:manualSel?manualSel.dataset.val:'Não',acoes:[...panel.querySelectorAll('[data-fluxo-acao].on')].map(x=>x.dataset.val)};
+f.fluxo={permitirRetorno:retornoSel?retornoSel.dataset.val:'Não',permitirManual:manualSel?manualSel.dataset.val:'Não',acoes:f.fluxo.acoes||[]};
 const msg=document.getElementById('fluxoSavedMsg');
 if(msg){msg.style.opacity='1';setTimeout(()=>{msg.style.opacity='0';},2200);}
 }
@@ -358,7 +359,7 @@ const f=idx!=null?FUNIS[idx]:{nome:'',descricao:'',tipo:'Pessoa Física',status:
 document.getElementById('funilModalTitle').textContent=idx==null?'Novo Funil':'Editar Funil';
 document.getElementById('funNome').value=f.nome;
 document.getElementById('funDescricao').value=f.descricao;
-document.getElementById('funTipo').value=f.tipo;rgSet('funStatusRG',f.status);
+rgSet('funStatusRG',f.status);
 funilOverlay.classList.add('open');
 }
 function closeFunilModal(){funilOverlay.classList.remove('open')}
@@ -369,7 +370,7 @@ document.getElementById('funilSave').addEventListener('click',()=>{
 const nome=document.getElementById('funNome').value.trim();
 if(!nome){document.getElementById('funNome').classList.add('err');return}
 document.getElementById('funNome').classList.remove('err');
-const rec={nome:nome,descricao:document.getElementById('funDescricao').value.trim(),tipo:document.getElementById('funTipo').value,status:rgVal('funStatusRG')};
+const rec={nome:nome,descricao:document.getElementById('funDescricao').value.trim(),tipo:(funilEditIdx!=null?FUNIS[funilEditIdx].tipo:''),status:rgVal('funStatusRG')};
 if(funilEditIdx==null){rec.etapas=[];FUNIS.push(rec);funilSelIdx=FUNIS.length-1;}
 else{Object.assign(FUNIS[funilEditIdx],rec);}
 closeFunilModal();renderFunisPanel();
@@ -386,7 +387,7 @@ const e=idx!=null?arr[idx]:{nome:'',cor:'#0ea5b7',descricao:'',sla:'',obrigatori
 document.getElementById('etapaModalTitle').textContent=idx==null?'Nova Etapa':'Editar Etapa';
 document.getElementById('etpNome').value=e.nome;
 document.getElementById('etpCor').value=e.cor;
-document.getElementById('etpSla').value=parseInt(e.sla)||'';
+const etpSlaEl=document.getElementById('etpSla');etpSlaEl.value=toClock(e.sla);clockMask(etpSlaEl);
 rgSet('etpObrigRG',e.obrigatoria);rgSet('etpAtivaRG',e.ativa);rgSet('etpAvancarRG',e.avancarQualquer);
 etapaOverlay.classList.add('open');
 }
@@ -398,8 +399,7 @@ document.getElementById('etapaSave').addEventListener('click',()=>{
 const nome=document.getElementById('etpNome').value.trim();
 if(!nome){document.getElementById('etpNome').classList.add('err');return}
 document.getElementById('etpNome').classList.remove('err');
-const slaH=document.getElementById('etpSla').value.trim();
-const rec={nome:nome,cor:document.getElementById('etpCor').value,sla:slaH?slaH+' horas':'',obrigatoria:rgVal('etpObrigRG'),ativa:rgVal('etpAtivaRG'),avancarQualquer:rgVal('etpAvancarRG')};
+const rec={nome:nome,cor:document.getElementById('etpCor').value,sla:document.getElementById('etpSla').value.trim()||'—',obrigatoria:rgVal('etpObrigRG'),ativa:rgVal('etpAtivaRG'),avancarQualquer:rgVal('etpAvancarRG')};
 const arr=FUNIS[funilSelIdx].etapas;
 if(etapaEditIdx==null)arr.push(rec);else Object.assign(arr[etapaEditIdx],rec);
 closeEtapaModal();renderFunisPanel();
@@ -408,22 +408,15 @@ closeEtapaModal();renderFunisPanel();
 /* Modal Próxima Ação (Biblioteca) */
 const proxAcaoOverlay=document.getElementById('proxAcaoOverlay');
 let proxAcaoEditIdx=null;
-const paPrazoRGEl=document.getElementById('paPrazoRG');
-if(paPrazoRGEl)paPrazoRGEl.querySelectorAll('.radio-opt').forEach(opt=>opt.addEventListener('click',()=>{
-document.getElementById('paPrazoCustomWrap').style.display=opt.dataset.val==='Personalizado'?'block':'none';
-}));
 function openProxAcaoModal(idx){
 proxAcaoEditIdx=idx;
 const p=idx!=null?PROX_ACOES[idx]:{nome:'',descricao:'',tipo:'Ligação',prazo:'15 minutos',prioridade:'Normal',automatica:'Não',status:'Ativo'};
 document.getElementById('proxAcaoModalTitle').textContent=idx==null?'Nova Próxima Ação':'Editar Próxima Ação';
 document.getElementById('paNome').value=p.nome;
 document.getElementById('paDescricao').value=p.descricao||'';
-rgSet('paTipoRG',p.tipo);
-const prazoPadrao=PA_PRAZOS.includes(p.prazo)?p.prazo:'Personalizado';
-rgSet('paPrazoRG',prazoPadrao);
-document.getElementById('paPrazoCustomWrap').style.display=prazoPadrao==='Personalizado'?'block':'none';
-document.getElementById('paPrazoCustom').value=prazoPadrao==='Personalizado'?p.prazo:'';
-rgSet('paPrioridadeRG',p.prioridade);
+document.getElementById('paTipo').value=p.tipo;
+const paPrazoEl=document.getElementById('paPrazo');paPrazoEl.value=toClock(p.prazo);clockMask(paPrazoEl);
+document.getElementById('paPrioridade').value=p.prioridade;
 rgSet('paAutoRG',p.automatica);
 rgSet('paStatusRG',p.status);
 proxAcaoOverlay.classList.add('open');
@@ -436,9 +429,7 @@ document.getElementById('proxAcaoSave').addEventListener('click',()=>{
 const nome=document.getElementById('paNome').value.trim();
 if(!nome){document.getElementById('paNome').classList.add('err');return}
 document.getElementById('paNome').classList.remove('err');
-const prazoSel=rgVal('paPrazoRG');
-const prazo=prazoSel==='Personalizado'?(document.getElementById('paPrazoCustom').value.trim()||'Personalizado'):prazoSel;
-const rec={nome:nome,descricao:document.getElementById('paDescricao').value.trim(),tipo:rgVal('paTipoRG'),prazo:prazo,prioridade:rgVal('paPrioridadeRG'),automatica:rgVal('paAutoRG'),status:rgVal('paStatusRG')};
+const rec={nome:nome,descricao:document.getElementById('paDescricao').value.trim(),tipo:document.getElementById('paTipo').value,prazo:document.getElementById('paPrazo').value.trim()||'00:00:00',prioridade:document.getElementById('paPrioridade').value,automatica:rgVal('paAutoRG'),status:rgVal('paStatusRG')};
 if(proxAcaoEditIdx==null)PROX_ACOES.push(rec);else Object.assign(PROX_ACOES[proxAcaoEditIdx],rec);
 closeProxAcaoModal();renderFunisPanel();
 });
