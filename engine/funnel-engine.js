@@ -75,7 +75,7 @@ let PROX_ACOES=[
 const DEFAULT_PROXACOES_MAP={'Novo Lead':[{acao:'Realizar primeiro contato',criarAuto:'Sim',prazo:'2 horas',responsavel:'Vendedor'}],'Contrato':[{acao:'Confirmar recebimento do contrato',criarAuto:'Sim',prazo:'24 horas',responsavel:'Vendedor'},{acao:'Confirmar assinatura',criarAuto:'Sim',prazo:'24 horas',responsavel:'Vendedor'}]};
 
 FUNIS.forEach(f=>{
-f.fluxo=f.fluxo||{permitirRetorno:'Não',permitirManual:'Não',acoes:[]};
+f.fluxo=f.fluxo||{permitirRetorno:'Não',acoes:[]};
 f.etapas.forEach((e,i)=>{
 if(!e.avancarPara){
 const nearEnd=i>=f.etapas.length-2;
@@ -113,14 +113,13 @@ return '<div style="display:flex;gap:24px;padding:16px 20px;align-items:flex-sta
 function renderFluxoCard(f){
 if(!f)return '';
 const rows=f.etapas.map((e,i)=>fluxoRow(f,e,i,f.etapas.length)).join('');
-const fx=f.fluxo;
+const fx=f.fluxo||{permitirRetorno:'Não',acoes:[]};
 return '<div class="card" style="margin-bottom:18px" id="fluxoCard">'+
 '<div class="card-head"><h3>Fluxo entre Etapas</h3></div>'+
 '<div style="padding:14px 20px 4px;font-size:13px;color:#8a97ab">Configure quais movimentações são permitidas entre as etapas deste funil.</div>'+
 '<div>'+rows+'</div>'+
 '<div class="cfg-form" style="padding:18px 20px;border-top:1px solid var(--surface-line)">'+
 '<div class="cfg-field"><label class="cfg-flabel">Permitir retorno para etapa anterior</label><div class="radio-group" id="fluxoRetornoRG"><div class="radio-opt'+(fx.permitirRetorno==='Sim'?' sel':'')+'" data-val="Sim"><span class="rd"></span>Sim</div><div class="radio-opt'+(fx.permitirRetorno==='Não'?' sel':'')+'" data-val="Não"><span class="rd"></span>Não</div></div></div>'+
-'<div class="cfg-field"><label class="cfg-flabel">Permitir movimentação manual para qualquer etapa</label><div class="radio-group" id="fluxoManualRG"><div class="radio-opt'+(fx.permitirManual==='Sim'?' sel':'')+'" data-val="Sim"><span class="rd"></span>Sim</div><div class="radio-opt'+(fx.permitirManual==='Não'?' sel':'')+'" data-val="Não"><span class="rd"></span>Não</div></div></div>'+
 '</div>'+
 '<div class="cfg-modal-foot" style="justify-content:space-between;align-items:center">'+
 '<span id="fluxoSavedMsg" style="font-size:12.5px;color:var(--signal);font-weight:600;opacity:0;transition:.25s">Fluxo salvo com sucesso!</span>'+
@@ -283,7 +282,7 @@ panel.querySelectorAll('[data-etpdown]').forEach(b=>b.addEventListener('click',(
 panel.querySelectorAll('[data-etpedit]').forEach(b=>b.addEventListener('click',()=>openEtapaModal(parseInt(b.dataset.etpedit))));
 panel.querySelectorAll('[data-etpdel]').forEach(b=>b.addEventListener('click',()=>{const i=parseInt(b.dataset.etpdel);if(confirm('Excluir esta etapa?')){FUNIS[funilSelIdx].etapas.splice(i,1);renderFunisPanel();}}));
 panel.querySelectorAll('[data-fluxo-origin]').forEach(ci=>ci.addEventListener('click',e=>{e.preventDefault();ci.classList.toggle('on');}));
-panel.querySelectorAll('#fluxoRetornoRG .radio-opt,#fluxoManualRG .radio-opt').forEach(opt=>opt.addEventListener('click',()=>{opt.parentElement.querySelectorAll('.radio-opt').forEach(o=>o.classList.remove('sel'));opt.classList.add('sel');}));
+panel.querySelectorAll('#fluxoRetornoRG .radio-opt').forEach(opt=>opt.addEventListener('click',()=>{opt.parentElement.querySelectorAll('.radio-opt').forEach(o=>o.classList.remove('sel'));opt.classList.add('sel');}));
 panel.querySelectorAll('[data-fluxo-acao]').forEach(ci=>ci.addEventListener('click',e=>{e.preventDefault();ci.classList.toggle('on');}));
 const sfb=document.getElementById('saveFluxoBtn');if(sfb)sfb.addEventListener('click',saveFluxo);
 panel.querySelectorAll('[data-campos-origin]').forEach(ci=>ci.addEventListener('click',e=>{e.preventDefault();ci.classList.toggle('on');}));
@@ -341,8 +340,7 @@ function saveFluxo(){
 const f=FUNIS[funilSelIdx];const panel=document.getElementById('cfg-funis');
 f.etapas.forEach((e,i)=>{e.avancarPara=[...panel.querySelectorAll('[data-fluxo-origin="'+i+'"].on')].map(x=>x.dataset.val);});
 const retornoSel=panel.querySelector('#fluxoRetornoRG .radio-opt.sel');
-const manualSel=panel.querySelector('#fluxoManualRG .radio-opt.sel');
-f.fluxo={permitirRetorno:retornoSel?retornoSel.dataset.val:'Não',permitirManual:manualSel?manualSel.dataset.val:'Não',acoes:f.fluxo.acoes||[]};
+f.fluxo={permitirRetorno:retornoSel?retornoSel.dataset.val:'Não',acoes:(f.fluxo&&f.fluxo.acoes)||[]};
 const msg=document.getElementById('fluxoSavedMsg');
 if(msg){msg.style.opacity='1';setTimeout(()=>{msg.style.opacity='0';},2200);}
 }
