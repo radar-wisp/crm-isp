@@ -228,7 +228,7 @@ return etapaSelector+'<div style="display:flex;gap:18px;align-items:flex-start;f
 }
 
 function renderMotorTabs(){
-const tabs=[['funis','Funis'],['etapas','Etapas'],['fluxo','Fluxo'],['campos','Campos Obrigatórios'],['acoes','Ações Automáticas'],['proxacoes','Próximas Ações'],['validacoes','Validações']];
+const tabs=[['funis','Funis'],['etapas','Etapas'],['fluxo','Fluxo'],['campos','Campos Obrigatórios'],['proxacoes','Próximas Ações'],['acoes','Ações Automáticas'],['validacoes','Validações']];
 return tabs.map(t=>'<button class="'+(motorTab===t[0]?'on':'')+'" data-tab="'+t[0]+'">'+t[1]+'</button>').join('');
 }
 
