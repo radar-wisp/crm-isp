@@ -1,3 +1,4 @@
+[ARCHITECTURE.md](https://github.com/user-attachments/files/30432647/ARCHITECTURE.md)
 [ARCHITECTURE.md](https://github.com/user-attachments/files/30306716/ARCHITECTURE.md)
 # Arquitetura
 
@@ -95,3 +96,40 @@ da tela Configurações, e não HTML/CSS de uma tela específica.
   documentado acima de `esc`/`escA`).
 - O HTML de cada tela é byte-a-byte o mesmo do arquivo original,
   apenas movido para seu próprio arquivo.
+
+## Camada de persistência (dados de teste)
+
+Acrescentada depois da modularização, para que o protótipo possa ser
+testado sem perder o que foi cadastrado a cada `F5`. São dois arquivos,
+e a posição de cada um na lista de `config/app.config.js` é o ponto
+importante:
+
+| Arquivo | Posição | Por quê |
+|---|---|---|
+| `engine/storage.js` | logo **depois** de `shared/mock-data.js` | Reidrata o array `LEADS` antes de `modules/leads.js` e `modules/venda.js` rodarem — os dois montam suas telas (e o array `mineAll`) a partir do conteúdo de `LEADS` no momento em que carregam. Sem isso, os 132 leads seriam sorteados de novo a cada recarga. |
+| `engine/persistence.js` | **por último** | Só neste ponto `CFG`, `FUNIS`, `PROX_ACOES` e o estado do Dashboard já existem para serem restaurados; depois de restaurá-los, redesenha as telas que já haviam sido montadas com os dados-semente. |
+
+Como o estado é gravado:
+
+- **Sem tocar nos pontos de mutação.** Em vez de chamar "salvar" em cada
+  `push`/`splice`/`Object.assign` espalhado pelo projeto, o
+  `persistence.js` grava de forma *debounced* (400 ms) depois de qualquer
+  `click`/`change`/`input` no documento e depois de cada `render*()`.
+  As funções de render originais não foram alteradas — elas são apenas
+  envolvidas (`window.renderLeads = wrap(renderLeads)`), o que preserva o
+  comportamento e mantém a gravação acoplada ao momento em que o estado
+  realmente muda (importante em fluxos assíncronos, como a conclusão da
+  venda no wizard, que altera o lead ~1,6 s depois do clique).
+- **Uma única chave** no `localStorage` (`radar-crm:estado:v1`, ~85 KB),
+  versionada: um snapshot de versão diferente é descartado em vez de
+  quebrar a tela.
+- **Restauração preservando referências**: arrays são preenchidos no
+  lugar (`arr.length=0` + `push`), nunca substituídos, porque outras
+  telas guardam referências para os mesmos objetos (ex.: `mineAll` em
+  `modules/venda.js`).
+
+Único ajuste de comportamento em código existente: em `modules/venda.js`,
+a etapa inicial (`fstage`) passou a ser sorteada apenas para leads que
+ainda não têm etapa (`if(l.fstage==null)`), para não sobrescrever a etapa
+restaurada. Em uma base nova (sem nada salvo) o resultado é idêntico ao
+anterior.
