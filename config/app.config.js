@@ -26,11 +26,17 @@ window.APP_CONFIG = {
     'modules/cadastro.js',
     'modules/config.js',
     'shared/mock-data.js',
+    /* Persistência (1/2): precisa vir logo depois de mock-data.js para
+     * reidratar LEADS antes de leads.js e venda.js montarem suas telas. */
+    'engine/storage.js',
     'modules/leads.js',
     'modules/venda.js',
     'shared/wizard-engine.js',
     'engine/config-engine.js',
     'modules/dashboard.js',
-    'engine/funnel-engine.js'
+    'engine/funnel-engine.js',
+    /* Persistência (2/2): por último — só aqui CFG, FUNIS, PROX_ACOES e
+     * o estado do Dashboard já existem para serem restaurados/salvos. */
+    'engine/persistence.js'
   ]
 };
