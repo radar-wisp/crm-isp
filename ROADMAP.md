@@ -1,3 +1,4 @@
+[ROADMAP.md](https://github.com/user-attachments/files/30432670/ROADMAP.md)
 [ROADMAP.md](https://github.com/user-attachments/files/30306687/ROADMAP.md)
 # Roadmap
 
@@ -19,8 +20,11 @@ próximos passos possíveis, para discussão com o time.
 
 - [ ] Autenticação e controle de acesso por perfil (hoje o usuário
       "Renatha Loiola" é fixo no código).
-- [ ] Persistência real de Leads, Funis, Etapas e Próximas Ações (hoje
-      tudo vive em memória e se perde ao recarregar a página).
+- [x] Persistência dos dados **para testes**, no `localStorage` do
+      navegador (`engine/storage.js` + `engine/persistence.js`).
+- [ ] Persistência **real** (servidor) de Leads, Funis, Etapas e Próximas
+      Ações — hoje o estado salvo vale apenas naquele navegador e não é
+      compartilhado entre usuários.
 - [ ] Testes automatizados de regressão de UI (ex.: Playwright) cobrindo
       a navegação entre todas as telas e o fluxo completo do assistente
       de venda.
