@@ -1,3 +1,4 @@
+[CLAUDE.md](https://github.com/user-attachments/files/30432655/CLAUDE.md)
 [CLAUDE.md](https://github.com/user-attachments/files/30306677/CLAUDE.md)
 # CLAUDE.md
 
@@ -8,8 +9,9 @@ repositório.
 
 CRM interno ("Radar Internet") para provedor de internet, front-end puro
 (HTML + CSS + JavaScript "vanilla", sem framework, sem build step). Os
-dados são simulados em memória (`shared/mock-data.js`) — não há backend
-nem persistência real.
+dados são simulados (`shared/mock-data.js`) — não há backend. Para os
+testes, o estado é persistido no `localStorage` do navegador por
+`engine/storage.js` + `engine/persistence.js`.
 
 ## Regras ao editar este projeto
 
@@ -34,7 +36,13 @@ nem persistência real.
    causa de CORS. Sirva com `python3 -m http.server` (ou equivalente) e
    teste a navegação entre todas as telas, a abertura do assistente de
    venda (wizard) e a aba Configurações antes de finalizar.
-6. **Erros de "hoisting entre arquivos"**: se uma função existir mas o
+6. **Ao criar uma variável nova de estado** (um array/objeto que o usuário
+   edita pela interface), acrescente-a em `estadoAtual()` e no bloco de
+   restauração de `engine/persistence.js` — caso contrário ela se perde
+   ao recarregar a página. Arrays devem ser restaurados **no lugar**
+   (`RadarStore.preencherArray`), nunca substituídos, porque outras telas
+   guardam referências para os mesmos objetos.
+7. **Erros de "hoisting entre arquivos"**: se uma função existir mas o
    console acusar "X is not defined" ao carregar a página, é provável que
    ela esteja definida em um arquivo que carrega DEPOIS de quem a usa.
    Ajuste a ordem em `config/app.config.js`, não duplique a função.
@@ -53,6 +61,7 @@ nem persistência real.
 | Cadastros da tela Configurações (vendedores, planos, metas...) | `engine/config-engine.js`, `assets/css/09_config.css`, `modules/config.html` |
 | Motor de Funis/Etapas/Ações/Validações (aba "Funis" em Configurações) | `engine/funnel-engine.js` |
 | Dados fictícios de leads/vendedores | `shared/mock-data.js` |
+| Salvamento/restauração dos dados de teste | `engine/storage.js` (leads, cedo) e `engine/persistence.js` (resto + botão "Dados salvos") |
 
 ## Comandos úteis
 
