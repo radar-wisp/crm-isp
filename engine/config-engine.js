@@ -7,7 +7,7 @@ const AREA_MAP={'UF':'uf','CEP':'cep','Cidade':'cidade','Bairro':'bairro','Condo
 const CFG={
 vend:{title:'Colaboradores',cols:[
 {key:'nome',label:'Nome',type:'text'},
-{key:'funcao',label:'Função',type:'radio',options:['Vendedor','Supervisor','Coordenador','Diretor','Atendente']},
+{key:'funcao',label:'Função',type:'select',options:['Vendedor','Supervisor','Coordenador','Diretor','Atendente']},
 {key:'limitar',label:'Limitação de planos',type:'select',options:['Sim','Não']},
 {key:'planos',label:'Selecionar planos',type:'checkdrop',source:'grupo',showIf:{key:'limitar',eq:'Sim'}},
 {key:'status',label:'Status',type:'radio',options:['Ativo','Inativo']}],data:[
