@@ -1,3 +1,4 @@
+[README.md](https://github.com/user-attachments/files/30432634/README.md)
 [README.md](https://github.com/user-attachments/files/30306666/README.md)
 # Radar Internet — CRM
 
@@ -36,6 +37,42 @@ npx serve .
 Também funciona automaticamente ao publicar no **GitHub Pages** — veja o
 passo a passo mais abaixo.
 
+## Persistência dos dados de teste
+
+Tudo o que você cadastra, configura ou edita durante os testes fica
+**salvo no navegador** (`localStorage`) e é restaurado automaticamente ao
+recarregar a página. Isso vale para:
+
+- Leads (inclusive os criados em "Novo Lead", o vendedor atribuído e a
+  etapa de cada lead no Fluxo da Venda);
+- todas as tabelas de **Configurações** (colaboradores, planos, metas e
+  comissões, áreas, grupos de planos, formas de pagamento, motivos de
+  perda, NF e campanhas);
+- o **Motor do Funil**: funis, etapas, fluxo, campos obrigatórios, ações
+  automáticas, validações e a biblioteca de Próximas Ações;
+- cards e gráficos adicionados ou removidos no **Dashboard**;
+- a fila de **Próxima Ação** do Fluxo da Venda e seu histórico.
+
+No topo da tela há o botão **Dados salvos**, com as opções:
+
+| Opção | O que faz |
+|---|---|
+| Salvar agora | Força a gravação imediata (o salvamento já é automático) |
+| Exportar backup (.json) | Baixa o estado atual, para guardar ou compartilhar um cenário de teste |
+| Importar backup… | Carrega um `.json` exportado antes e recarrega a tela com aquele cenário |
+| Restaurar dados iniciais | Apaga tudo e volta aos dados fictícios originais |
+
+Detalhes importantes:
+
+- Continua sendo um protótipo **sem backend**: os dados ficam apenas
+  naquele navegador/máquina. Outra pessoa (ou uma janela anônima) verá os
+  dados fictícios iniciais.
+- Não é salvo o estado apenas visual (aba aberta, página da tabela, menu
+  recolhido, wizard em andamento) — só os dados.
+- Se o navegador estiver com o armazenamento bloqueado, o app continua
+  funcionando normalmente, avisando no botão que os dados valem só
+  naquela sessão.
+
 ## Estrutura do projeto
 
 ```
@@ -45,8 +82,10 @@ radar-internet/
 │   └── app.config.js        # Define quais módulos/scripts carregar e em que ordem
 ├── engine/
 │   ├── module-loader.js     # Monta a aplicação em runtime (fetch dos módulos)
+│   ├── storage.js           # Persistência 1/2: localStorage + restauração dos Leads
 │   ├── config-engine.js     # Motor das tabelas de cadastro (aba Configurações)
-│   └── funnel-engine.js     # Motor do Funil (etapas, tipos, ações, validações)
+│   ├── funnel-engine.js     # Motor do Funil (etapas, tipos, ações, validações)
+│   └── persistence.js       # Persistência 2/2: restaura o resto, salva e controla backups
 ├── modules/                 # Uma tela por arquivo (HTML + JS correspondente)
 │   ├── dashboard.html / .js
 │   ├── leads.html / .js
