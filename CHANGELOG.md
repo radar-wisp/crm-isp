@@ -1,9 +1,39 @@
+[CHANGELOG.md](https://github.com/user-attachments/files/30432664/CHANGELOG.md)
 [CHANGELOG.md](https://github.com/user-attachments/files/30306706/CHANGELOG.md)
 # Changelog
 
 Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/).
 
 ## [Unreleased]
+
+### Added — Persistência local dos dados de teste
+
+As informações, configurações e edições feitas na interface agora ficam
+salvas no navegador e voltam ao recarregar a página. Nenhuma regra de
+negócio, texto, nome de menu, layout ou fluxo foi alterado.
+
+- Novos arquivos `engine/storage.js` (armazenamento + restauração dos
+  Leads, carregado logo depois de `shared/mock-data.js`) e
+  `engine/persistence.js` (restaura Configurações, Motor do Funil,
+  Próximas Ações e Dashboard, salva automaticamente e cuida dos
+  backups, carregado por último) — ver `ARCHITECTURE.md`.
+- Salvamento automático (debounced) após qualquer interação e após cada
+  `render*()`; os pontos de mutação do código original não foram
+  tocados.
+- Novo controle **Dados salvos** no topo da tela: salvar agora, exportar
+  backup `.json`, importar backup e restaurar os dados iniciais.
+- Novo `assets/css/10_persistence.css` (estilo do controle acima) e o
+  `<link>` correspondente, adicionado por último no `index.html`.
+- `modules/venda.js`: a etapa inicial do lead no Fluxo da Venda passou a
+  ser sorteada apenas quando o lead ainda não tem etapa, para não
+  sobrescrever a etapa restaurada. Em base nova, o resultado é idêntico.
+
+Validado em navegador real (Playwright): criação de lead, exclusão de
+registros em Configurações, reordenação de etapas do funil, exclusão de
+Próximas Ações, avanço da Próxima Ação, remoção de card do Dashboard,
+perda e avanço de venda no wizard — todos preservados após recarregar,
+sem erros de console; exportação/importação de backup e restauração dos
+dados iniciais funcionando.
 
 ### Changed — Reorganização em arquitetura modular
 
