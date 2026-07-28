@@ -33,6 +33,10 @@ window.APP_CONFIG = {
     'modules/venda.js',
     'shared/wizard-engine.js',
     'engine/config-engine.js',
+    /* Depende de CFG, esc/escA, cfgBadge, openCfgEdit e dos ícones já
+     * definidos em engine/config-engine.js — por isso carrega logo
+     * depois dele. Estende (sem reescrever) o painel Modelos. */
+    'engine/modelo-engine.js',
     'modules/dashboard.js',
     'engine/funnel-engine.js',
     /* Persistência (2/2): por último — só aqui CFG, FUNIS, PROX_ACOES e
