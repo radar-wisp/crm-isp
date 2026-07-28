@@ -51,6 +51,13 @@ area:{title:'Área de vendas',optLabel:r=>{const k=AREA_MAP[r.considerar];return
 {considerar:'Bairro',uf:'GO',cep:'74000-000',cidade:'Goiânia',bairro:'Setor Central',condominio:'',logradouro:'Rua 10'},
 {considerar:'Cidade',uf:'GO',cep:'75100-000',cidade:'Anápolis',bairro:'Jundiaí',condominio:'',logradouro:'Av. Brasil'},
 {considerar:'Condomínio',uf:'GO',cep:'76330-000',cidade:'Jaraguá',bairro:'Centro',condominio:'Res. das Águas',logradouro:'Rua 3'}]},
+modelo:{title:'Modelos',cols:[
+{key:'nome',label:'Nome do modelo',type:'text'},
+{key:'tipo',label:'Tipo',type:'select',options:['Contrato','Mensagem','E-mail']},
+{key:'status',label:'Status',type:'radio',options:['Ativo','Inativo']}],data:[
+{nome:'Contrato Residencial Fibra',tipo:'Contrato',status:'Ativo'},
+{nome:'Boas-vindas ao cliente',tipo:'Mensagem',status:'Ativo'},
+{nome:'Confirmação de instalação',tipo:'E-mail',status:'Ativo'}]},
 grupo:{title:'Grupo de planos',cols:[
 {key:'grupo',label:'Grupo',type:'text'},
 {key:'planos',label:'Planos',type:'checkdrop',source:'plan'},
@@ -129,7 +136,15 @@ camp:{title:'Campanhas promocionais',cols:[
 {key:'selplanos',label:'Selecionar planos',type:'checkdrop',source:'plan',showIf:{key:'limitar',eq:'Sim'},hideInTable:true}],data:[
 {campanha:'Fibra 500 · Julho',dtini:'2026-07-01',dtfim:'2026-07-31',tipodesc:'Porcentagem',descPct:'50%',descVal:'',mensalidades:'3',limitar:'Sim',selplanos:['Fibra 500']},
 {campanha:'Black Friday Internet',dtini:'2026-11-20',dtfim:'2026-11-30',tipodesc:'Porcentagem',descPct:'50%',descVal:'',mensalidades:'3',limitar:'Não',selplanos:[]},
-{campanha:'Indique e Ganhe',dtini:'2026-01-01',dtfim:'2026-12-31',tipodesc:'Valor',descPct:'',descVal:'R$ 50,00',mensalidades:'1',limitar:'Sim',selplanos:['Fibra 300','Fibra 500']}]}
+{campanha:'Indique e Ganhe',dtini:'2026-01-01',dtfim:'2026-12-31',tipodesc:'Valor',descPct:'',descVal:'R$ 50,00',mensalidades:'1',limitar:'Sim',selplanos:['Fibra 300','Fibra 500']}]},
+variavel:{title:'Variáveis',cols:[
+{key:'nome',label:'Nome da variável',type:'text'},
+{key:'tag',label:'Tag',type:'text'},
+{key:'descricao',label:'Descrição',type:'text'},
+{key:'status',label:'Status',type:'radio',options:['Ativo','Inativo']}],data:[
+{nome:'Nome do cliente',tag:'{{cliente_nome}}',descricao:'Nome completo do cliente',status:'Ativo'},
+{nome:'Plano contratado',tag:'{{plano_nome}}',descricao:'Nome do plano vendido',status:'Ativo'},
+{nome:'Valor da mensalidade',tag:'{{plano_valor}}',descricao:'Valor mensal do plano',status:'Ativo'}]}
 };
 function cK(c){return Array.isArray(c)?c[0]:c.key}
 function cL(c){return Array.isArray(c)?c[1]:c.label}
