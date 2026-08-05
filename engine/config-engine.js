@@ -9,7 +9,7 @@ vend:{title:'Colaboradores',cols:[
 {key:'nome',label:'Nome',type:'text'},
 {key:'funcao',label:'Função',type:'select',options:['Vendedor','Supervisor','Coordenador','Diretor','Atendente']},
 {key:'limitar',label:'Limitação de planos',type:'select',options:['Sim','Não']},
-{key:'planos',label:'Selecionar planos',type:'checkdrop',source:'grupo',showIf:{key:'limitar',eq:'Sim'}},
+{key:'planos',label:'Selecionar grupo de planos',type:'checkdrop',source:'grupo',showIf:{key:'limitar',eq:'Sim'}},
 {key:'status',label:'Status',type:'radio',options:['Ativo','Inativo']}],data:[
 {nome:'Renatha Loiola',funcao:'Vendedor',limitar:'Sim',planos:['Residencial Fibra'],status:'Ativo'},
 {nome:'Ana Lima',funcao:'Supervisor',limitar:'Não',planos:[],status:'Ativo'},
@@ -36,7 +36,7 @@ meta:{title:'Metas e comissões',cols:[
 {key:'metaQtd',label:'Quantidade',type:'text',showIf:{key:'meta',eq:'Quantidade'}},
 {key:'metaValor',label:'Valor (R$)',type:'text',showIf:{key:'meta',eq:'Valor'}},
 {key:'faixas',label:'Faixas de comissão',type:'tiers'},
-{key:'periodo',label:'Período',type:'select',options:['Diário','Semanal','Mensal']}],data:[
+{key:'periodo',label:'Período',type:'select',options:['Diário','Semanal','Mensal','Trimestral','Anual']}],data:[
 {cargo:'Vendedor',meta:'Quantidade',metaQtd:'25 vendas',metaValor:'',faixas:[{at:'< 100%',com:'R$ 0,00'},{at:'>= 100%',com:'R$ 1.000,00'},{at:'>= 125%',com:'R$ 1.500,00'},{at:'>= 150%',com:'R$ 2.000,00'}],periodo:'Mensal'},
 {cargo:'Supervisor',meta:'Valor',metaQtd:'',metaValor:'R$ 120.000,00',faixas:[{at:'< 100%',com:'0%'},{at:'>= 100%',com:'1,2%'}],periodo:'Mensal'},
 {cargo:'Atendente',meta:'Quantidade',metaQtd:'40 atendimentos',metaValor:'',faixas:[{at:'>= 100%',com:'R$ 500,00'}],periodo:'Semanal'}]},
@@ -60,11 +60,12 @@ modelo:{title:'Modelos',cols:[
 {nome:'Confirmação de instalação',tipo:'E-mail',status:'Ativo'}]},
 grupo:{title:'Grupo de planos',cols:[
 {key:'grupo',label:'Grupo',type:'text'},
-{key:'planos',label:'Planos',type:'checkdrop',source:'plan'},
+{key:'planos',label:'Planos',type:'checkdrop',source:'plan',hideInTable:true},
+{key:'profile',label:'Profile vinculada',type:'text',hideInTable:true},
 {key:'status',label:'Status',type:'radio',options:['Ativo','Inativo']}],data:[
-{grupo:'Residencial Fibra',planos:['Fibra 300','Fibra 500'],status:'Ativo'},
-{grupo:'Empresarial',planos:['Fibra 500'],status:'Ativo'},
-{grupo:'Combos',planos:['Fibra 300','Radar Play'],status:'Ativo'}]},
+{grupo:'Residencial Fibra',planos:['Fibra 300','Fibra 500'],profile:'PROFILE-RES-FIBRA',status:'Ativo'},
+{grupo:'Empresarial',planos:['Fibra 500'],profile:'PROFILE-EMP',status:'Ativo'},
+{grupo:'Combos',planos:['Fibra 300','Radar Play'],profile:'PROFILE-COMBO',status:'Ativo'}]},
 pagamento:{title:'Formas de pagamento',cols:[
 {key:'tipo',label:'Tipo',type:'radio',options:['Adesão','Mensalidade']},
 {key:'descricao',label:'Descrição',type:'text'},
@@ -73,10 +74,11 @@ pagamento:{title:'Formas de pagamento',cols:[
 {key:'cobranca',label:'Tipo',type:'radio',options:['À vista','Parcelado']},
 {key:'limitar',label:'Limitação de planos',type:'radio',options:['Sim','Não']},
 {key:'selplanos',label:'Selecionar planos',type:'checkdrop',source:'plan',showIf:{key:'limitar',eq:'Sim'},hideInTable:true},
-{key:'derivacao',label:'Plano de composição de derivação',type:'text',hideInTable:true}],data:[
-{tipo:'Adesão',descricao:'Taxa de adesão',parcelas:'1x',valor:'R$ 99,90',cobranca:'À vista',limitar:'Não',selplanos:[],derivacao:''},
-{tipo:'Mensalidade',descricao:'Mensalidade recorrente',parcelas:'até 12x',valor:'R$ 99,90',cobranca:'Parcelado',limitar:'Sim',selplanos:['Fibra 500'],derivacao:'SCM 60%'},
-{tipo:'Mensalidade',descricao:'Serviço SVA',parcelas:'Mensal',valor:'R$ 19,90',cobranca:'À vista',limitar:'Sim',selplanos:['Radar Play'],derivacao:'SVA 100%'}]},
+{key:'derivacao',label:'Plano de composição de derivação',type:'text',hideInTable:true},
+{key:'profile',label:'Profile vinculada',type:'text',hideInTable:true}],data:[
+{tipo:'Adesão',descricao:'Taxa de adesão',parcelas:'1x',valor:'R$ 99,90',cobranca:'À vista',limitar:'Não',selplanos:[],derivacao:'',profile:''},
+{tipo:'Mensalidade',descricao:'Mensalidade recorrente',parcelas:'até 12x',valor:'R$ 99,90',cobranca:'Parcelado',limitar:'Sim',selplanos:['Fibra 500'],derivacao:'SCM 60%',profile:'PROFILE-MENS-500'},
+{tipo:'Mensalidade',descricao:'Serviço SVA',parcelas:'Mensal',valor:'R$ 19,90',cobranca:'À vista',limitar:'Sim',selplanos:['Radar Play'],derivacao:'SVA 100%',profile:'PROFILE-SVA'}]},
 perda:{title:'Motivos de perda',cols:[
 {key:'motivo',label:'Motivo',type:'text'},
 {key:'status',label:'Status',type:'radio',options:['Ativo','Inativo']}],data:[
