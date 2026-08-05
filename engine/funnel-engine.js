@@ -1,301 +1,441 @@
-</div>
-</div>
+/* ============================================================
+ * Motor de Funil — funis, etapas, tipos, ações automáticas, validações
+ * e próximas ações (aba Funis dentro de Configurações).
+ * Extraído do <script> original (bloco contíguo, ordem de execução
+ * preservada). Nenhuma linha de lógica foi reescrita.
+ * ============================================================ */
+/* Converte prazos legados ("2 horas", "1 dia", "15 minutos") para hh:mm:ss e
+ * aplica máscara de relógio nos inputs de prazo (SLA e Próxima Ação). */
+function toClock(v){const s=String(v||'').trim();if(/^\d{1,2}:\d{2}:\d{2}$/.test(s))return s;const m=s.match(/(\d+)\s*(min|hora|dia)/i);if(!m)return '';const n=parseInt(m[1]);if(/min/i.test(m[2]))return '00:'+String(n).padStart(2,'0')+':00';return String(/dia/i.test(m[2])?n*24:n).padStart(2,'0')+':00:00'}
+function clockMask(el){if(!el||el.dataset.clock)return;el.dataset.clock='1';el.addEventListener('input',()=>{const d=el.value.replace(/\D/g,'').slice(0,6);el.value=d.replace(/^(\d{1,2})(\d{0,2})(\d{0,2})$/,(x,a,b,c)=>a+(b?':'+b:'')+(c?':'+c:''));});}
+function etapa(nome,cor,icone,descricao,sla,obrig,ativa,avancar,campos,tipo){return {nome,cor,icone,descricao,sla,obrigatoria:obrig,ativa,avancarQualquer:avancar,campos,tipo:tipo||''}}
 
-<div class="modal-overlay" id="wzOverlay">
-<div class="modal">
-<div class="modal-top">
-<div class="lead-cli"><div class="av" id="wzAv" style="background:linear-gradient(135deg,#0ea5b7,#14c8dd)">--</div><div><b id="wzName">Lead</b><small id="wzPhone">--</small></div></div>
-<button class="modal-close" id="wzClose"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
-</div>
-<div class="wz-steps">
-<div class="fstep active" id="wzs1"><span class="bub">1</span><div class="fl"><b>Consultar Cobertura</b></div></div>
-<div class="fline" id="wzl1"></div>
-<div class="fstep" id="wzs2"><span class="bub">2</span><div class="fl"><b>Dados do Cliente</b></div></div>
-<div class="fline" id="wzl2"></div>
-<div class="fstep" id="wzs3"><span class="bub">3</span><div class="fl"><b>Plano e Contrato</b></div></div>
-<div class="fline" id="wzl3"></div>
-<div class="fstep" id="wzs4"><span class="bub">4</span><div class="fl"><b>Assinatura</b></div></div>
-<div class="fline" id="wzl4"></div>
-<div class="fstep" id="wzs5"><span class="bub">5</span><div class="fl"><b>Concluir Venda</b></div></div>
-</div>
+/* Ícones usados nesta aba. Definidos aqui (e não reaproveitados de
+ * modules/dashboard.js) porque aquele arquivo falha ao carregar — ele
+ * redeclara "const dupIco", que já existe em engine/config-engine.js,
+ * o que gera um erro de sintaxe e impede dashboard.js de rodar. Sem
+ * isso, gearIco/upIco/downIco ficavam undefined e renderFunisPanel()
+ * quebrava antes de desenhar qualquer coisa em #cfg-funis. Mesmos SVGs
+ * já usados no restante do projeto — nenhuma mudança visual.
+ */
+const gearIco='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>';
+const upIco='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>';
+const downIco='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg>';
 
-<div class="card" id="wzProxAcaoCard" style="margin:16px 22px 0"></div>
+let FUNIS=[
+{nome:'Funil Residencial',descricao:'Fluxo padrão para vendas de fibra residencial',tipo:'Pessoa Física',status:'Ativo',visualizacao:'Kanban',etapas:[
+etapa('Novo Lead','#0ea5b7','user-plus','Lead recém-cadastrado no sistema','2 horas','Sim','Sim','Não',['Nome','Telefone'],'Comercial'),
+etapa('Contato','#7c5cf6','phone','Primeiro contato realizado com o lead','1 dia','Sim','Sim','Não',['Nome','Telefone','Endereço'],'Comercial'),
+etapa('Qualificado','#f59e0b','check','Lead qualificado para negociação','2 dias','Sim','Sim','Não',['Nome','CPF','Telefone'],'Qualificação'),
+etapa('Viabilidade','#14c8dd','map-pin','Consulta de viabilidade técnica no endereço','1 dia','Sim','Sim','Não',['Endereço'],'Técnica'),
+etapa('Proposta','#3b82f6','file-text','Proposta comercial enviada ao cliente','3 dias','Não','Sim','Sim',['Plano'],'Comercial'),
+etapa('Contrato','#f97316','file-text','Contrato gerado para assinatura','2 dias','Sim','Sim','Não',['Contrato'],'Contratual'),
+etapa('Assinado','#22c55e','check','Contrato assinado pelo cliente','1 dia','Sim','Sim','Não',['Assinatura'],'Contratual'),
+etapa('Concluído','#16a34a','flag','Venda concluída','—','Sim','Sim','Não',[],'Finalizadora')]},
+{nome:'Funil Empresarial',descricao:'Fluxo para negociações corporativas (PJ)',tipo:'Pessoa Jurídica',status:'Ativo',visualizacao:'Lista',etapas:[
+etapa('Novo Lead','#0ea5b7','user-plus','Lead corporativo recebido','4 horas','Sim','Sim','Não',['Nome','Telefone'],'Comercial'),
+etapa('Diagnóstico','#7c5cf6','map-pin','Levantamento das necessidades do cliente','2 dias','Sim','Sim','Não',['Endereço'],'Técnica'),
+etapa('Proposta','#3b82f6','file-text','Proposta comercial corporativa','5 dias','Não','Sim','Sim',['Plano'],'Comercial'),
+etapa('Negociação','#f59e0b','phone','Ajustes comerciais e contratuais','5 dias','Não','Sim','Sim',[],'Comercial'),
+etapa('Fechamento','#22c55e','check','Contrato assinado e ativado','2 dias','Sim','Sim','Não',['Contrato','Assinatura'],'Contratual')]},
+{nome:'Funil de Retenção',descricao:'Tratamento de solicitações de cancelamento',tipo:'Retenção',status:'Inativo',visualizacao:'Kanban',etapas:[
+etapa('Solicitação','#ef4444','file-text','Cliente solicitou cancelamento','1 dia','Sim','Sim','Não',['Nome'],'Comercial'),
+etapa('Contato de Retenção','#f59e0b','phone','Contato para entender o motivo','2 dias','Sim','Sim','Não',[],'Comercial'),
+etapa('Oferta','#3b82f6','file-text','Oferta de retenção enviada','2 dias','Não','Sim','Sim',[],'Comercial'),
+etapa('Resolvido','#22c55e','flag','Caso finalizado','—','Sim','Sim','Não',[],'Finalizadora')]}
+];
+const MASTER_CAMPOS=['Nome','CPF','CNPJ','Whatsapp','E-mail','Nome social','Nome fantasia','Data de fundação','Data de nascimento','Telefone secundário','Telefone comercial','Pai','Inscrição municipal','Mãe','Inscrição estadual','Endereço','Plano','Contrato','Forma de envio','Assinatura','Conclusão'];
+const AUTO_ACOES=['Criar atividade','Criar Follow-up','Alterar Status','Enviar E-mail','Enviar WhatsApp','Gerar Auditoria','Criar Ordem de Serviço','Notificar Supervisor','Agendar Instalação','Criar Pendência'];
+const DEFAULT_CAMPOS_MAP={'Novo Lead':['Nome','Telefone','Origem'],'Contato':['Nome','Telefone'],'Qualificado':['Nome','CPF','Telefone'],'Viabilidade':['CEP','Endereço','Cidade','Bairro'],'Proposta':['Plano'],'Contrato':['Contrato','Documento','Assinatura'],'Assinado':['Assinatura']};
+const DEFAULT_ACOES_MAP={'Novo Lead':['Criar atividade'],'Proposta':['Enviar E-mail'],'Contrato':['Enviar E-mail','Gerar Auditoria'],'Assinado':['Criar Ordem de Serviço','Notificar Supervisor'],'Concluído':['Criar Pendência']};
+const VALID_GROUPS=[
+{title:'Dados do Cliente',items:['Nome obrigatório','CPF obrigatório','Documento válido','Data de nascimento obrigatória','Telefone principal obrigatório','E-mail obrigatório','Endereço obrigatório','CEP obrigatório','Cidade obrigatória','Bairro obrigatório','Número obrigatório']},
+{title:'Validação Comercial',items:['Lead Qualificada','Vendedor responsável definido','Origem da Lead obrigatória','Campanha obrigatória','Plano selecionado','Contrato selecionado','Tabela de preço definida']},
+{title:'Validação Técnica',items:['Viabilidade obrigatória','Cobertura aprovada','Porta disponível','CTO disponível','Caixa disponível','Ampliação de rede aprovada']},
+{title:'Validação Contratual',items:['Contrato enviado','Contrato visualizado','Contrato assinado','Documento anexado']},
+{title:'Validação Financeira',items:['Forma de pagamento definida','Primeira cobrança gerada','Aprovação financeira']},
+{title:'Permissões',items:['Permitir avanço mesmo com pendências','Apenas Supervisor pode ignorar validações','Apenas Gerente pode ignorar validações']}
+];
+const VALID_TOTAL_ITEMS=VALID_GROUPS.reduce((s,g)=>s+g.items.length,0);
+const VALID_ACOES=['Apenas informar','Bloquear avanço','Solicitar aprovação','Criar pendência'];
+const DEFAULT_VALID_MAP={'Novo Lead':['Nome obrigatório','Telefone principal obrigatório'],'Qualificado':['Lead Qualificada','Origem da Lead obrigatória'],'Viabilidade':['Viabilidade obrigatória','Cobertura aprovada'],'Proposta':['Plano selecionado','Tabela de preço definida'],'Contrato':['Contrato enviado','Documento anexado'],'Assinado':['Contrato assinado']};
 
-<div class="wz-main">
-<div class="wz-body">
+/* ===== Próximas Ações (Follow-up) ===== */
+const PA_TIPOS=['Ligação','WhatsApp','E-mail','Tarefa','Visita','Outro'];
+const PA_PRAZOS=['15 minutos','30 minutos','1 hora','2 horas','24 horas','48 horas','Personalizado'];
+const PA_PRIORIDADES=['Baixa','Normal','Alta','Crítica'];
+const PA_RESPONSAVEIS=['Vendedor','Supervisor','Administrador'];
+let PROX_ACOES=[
+{nome:'Confirmar recebimento do contrato',descricao:'Verificar com o cliente se o contrato enviado foi recebido.',tipo:'WhatsApp',prazo:'24 horas',prioridade:'Alta',automatica:'Sim',status:'Ativo'},
+{nome:'Confirmar assinatura',descricao:'Confirmar com o cliente a assinatura do contrato enviado.',tipo:'Ligação',prazo:'24 horas',prioridade:'Alta',automatica:'Sim',status:'Ativo'},
+{nome:'Enviar proposta comercial',descricao:'Encaminhar a proposta comercial ao cliente.',tipo:'E-mail',prazo:'2 horas',prioridade:'Normal',automatica:'Não',status:'Ativo'},
+{nome:'Realizar primeiro contato',descricao:'Fazer o primeiro contato com o lead recém-cadastrado.',tipo:'Ligação',prazo:'2 horas',prioridade:'Alta',automatica:'Sim',status:'Ativo'},
+{nome:'Agendar visita técnica',descricao:'Agendar visita para avaliação de viabilidade técnica.',tipo:'Visita',prazo:'48 horas',prioridade:'Normal',automatica:'Não',status:'Ativo'}
+];
+const DEFAULT_PROXACOES_MAP={'Novo Lead':[{acao:'Realizar primeiro contato',criarAuto:'Sim',prazo:'2 horas',responsavel:'Vendedor'}],'Contrato':[{acao:'Confirmar recebimento do contrato',criarAuto:'Sim',prazo:'24 horas',responsavel:'Vendedor'},{acao:'Confirmar assinatura',criarAuto:'Sim',prazo:'24 horas',responsavel:'Vendedor'}]};
 
-<div class="wstep on" data-step="1">
-<div class="wz-title">Consultar Cobertura</div>
-<div class="wz-sub">Verifique rapidamente se existe viabilidade no endereço do cliente</div>
-<div class="viab-tools">
-<div class="fg" style="max-width:160px"><label>CEP</label><input type="text" id="viabCep" placeholder="74000-000"></div>
-<div class="fg" style="max-width:160px"><label>Cidade</label><input type="text" id="viabCidade" placeholder="Cidade"></div>
-<div class="fg" style="max-width:160px"><label>Bairro</label><input type="text" id="viabBairro" placeholder="Bairro"></div>
-<div class="fg" style="max-width:200px"><label>Logradouro</label><input type="text" id="viabLogradouro" placeholder="Rua, avenida..."></div>
-<div class="fg" style="max-width:120px"><label>Número</label><input type="text" id="viabNum" placeholder="Nº"></div>
-<div class="fg" style="max-width:200px"><label>Complemento (opcional)</label><input type="text" id="viabCompl" placeholder="Apto, bloco..."></div>
-<button class="btn-primary" id="btnViab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>Consultar Cobertura</button>
-</div>
-<div id="viabResult" style="display:none">
-<div id="viabBox"></div>
-<div class="end-actions" id="viabEnd" style="display:none">
-<button class="btn-ghost" id="btnEncerrar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Encerrar lead</button>
-<button class="btn-primary" id="btnAgendar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>Agendar retorno</button>
-</div>
-</div>
-</div>
+FUNIS.forEach(f=>{
+f.fluxo=f.fluxo||{permitirRetorno:'Não',acoes:[]};
+f.etapas.forEach((e,i)=>{
+if(!e.avancarPara){
+const nearEnd=i>=f.etapas.length-2;
+e.avancarPara=i<f.etapas.length-1?(nearEnd?[f.etapas[i+1].nome]:[f.etapas[i+1].nome,'Perdido']):[];
+}
+if(!e.camposAvanco)e.camposAvanco=DEFAULT_CAMPOS_MAP[e.nome]||[];
+if(!e.acoesAutomaticas)e.acoesAutomaticas=DEFAULT_ACOES_MAP[e.nome]||[];
+if(!e.validacoes)e.validacoes=DEFAULT_VALID_MAP[e.nome]||[];
+if(!e.validacaoAcao)e.validacaoAcao='Bloquear avanço';
+if(!e.proximasAcoes)e.proximasAcoes=(DEFAULT_PROXACOES_MAP[e.nome]||[]).map(x=>({...x}));
+});
+});
+let funilSelIdx=0;
+let motorTab='funis';
+let validEtapaIdx=0;
 
-<div class="wstep" data-step="2">
-<div class="wz-title">Dados do Cliente</div>
-<div class="wz-sub">Informe apenas o essencial para seguir com a venda</div>
-<div class="radio-group" data-radio="tipoCadastro" style="margin-bottom:12px">
-<div class="radio-opt sel" data-val="cpf"><span class="rd"></span>CPF</div>
-<div class="radio-opt" data-val="cnpj"><span class="rd"></span>CNPJ</div>
-</div>
-<div class="fgrid2">
-<div class="fg c3"><label>Nome</label><input type="text" id="cadNome" placeholder="Nome completo"></div>
-<div class="fg c3"><label id="cadCpfLabel">CPF</label><div class="consulta-row" style="margin-bottom:0"><input type="text" id="cadCpf" placeholder="000.000.000-00" style="flex:1"><button class="btn-ghost" id="btnConsultaCpf" style="height:34px;font-size:12px;padding:0 12px;flex-shrink:0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="width:13px;height:13px"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>Consultar</button></div></div>
-<div class="fg c3"><label>Whatsapp</label><input type="text" id="cadTel1" placeholder="(00) 00000-0000"></div>
-<div class="fg c3"><label>E-mail</label><input type="text" id="cadEmail" placeholder="cliente@email.com"></div>
-</div>
-<span class="consulta-msg" id="consultaMsg" style="display:block;margin:-4px 0 12px"></span>
-<button class="btn-ghost" id="btnAbrirCadastro" type="button" style="display:none;height:30px;font-size:12px;padding:0 12px;margin:-4px 0 12px;gap:6px">Abrir cadastro existente</button>
-<button class="btn-ghost" id="btnMaisInfo" style="height:36px;font-size:12.5px;padding:0 13px;gap:6px;margin-bottom:4px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="maisInfoIco" style="width:13px;height:13px"><polyline points="6 9 12 15 18 9"/></svg>Mais Informações</button>
-<button class="btn-ghost" id="btnEndereco" style="height:36px;font-size:12.5px;padding:0 13px;gap:6px;margin-bottom:4px;margin-left:8px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="enderecoIco" style="width:13px;height:13px"><polyline points="6 9 12 15 18 9"/></svg>Endereço</button>
-<div class="fgrid2" id="maisInfoBlock" style="display:none;margin-top:12px">
-<div class="fg c3"><label id="lblNomeSocial">Nome Social</label><input type="text" id="cadNomeSocial" placeholder="Nome social (opcional)"></div>
-<div class="fg c3"><label id="lblNasc">Data de nascimento</label><input type="date" id="cadNasc"></div>
-<div class="fg c3"><label>Telefone Secundário</label><input type="text" id="cadTel2" placeholder="(00) 00000-0000"></div>
-<div class="fg c3"><label>Telefone Comercial</label><input type="text" id="cadTel3" placeholder="(00) 00000-0000"></div>
-<div class="fg c3"><label id="lblPai">Pai</label><input type="text" id="cadPai" placeholder="Nome do pai"></div>
-<div class="fg c3"><label id="lblMae">Mãe</label><input type="text" id="cadMae" placeholder="Nome da mãe"></div>
-</div>
-<div class="fgrid2" id="enderecoBlock" style="display:none;margin-top:12px">
-<div class="fg c3"><label>CEP</label><input type="text" id="cadCep" placeholder="00000-000"></div>
-<div class="fg c3"><label>UF</label><input type="text" id="cadUf" placeholder="UF"></div>
-<div class="fg c3"><label>Cidade</label><input type="text" id="cadCidade" placeholder="Cidade"></div>
-<div class="fg c3"><label>Bairro</label><input type="text" id="cadBairro" placeholder="Bairro"></div>
-<div class="fg c3"><label>Logradouro</label><input type="text" id="cadLogradouro" placeholder="Rua, avenida..."></div>
-<div class="fg c3"><label>Número</label><input type="text" id="cadNumero" placeholder="Nº"></div>
-<div class="fg c3"><label>Complemento</label><input type="text" id="cadComplemento" placeholder="Apto, bloco..."></div>
-<div class="fg c3"><label>Referência</label><input type="text" id="cadReferencia" placeholder="Ponto de referência"></div>
-</div>
-</div>
+function funRow(f,i){
+return '<tr><td><b style="color:var(--body-strong)">'+esc(f.nome)+'</b><br><small style="color:#8a97ab;font-size:11.5px">'+esc(f.descricao)+'</small></td><td>'+(f.tipo?'<span class="chip-soft">'+esc(f.tipo)+'</span>':'—')+'</td><td>'+f.etapas.length+' etapa(s)</td><td>'+cfgBadge(f.status)+'</td><td><div class="cfg-acts"><button class="row-act" data-funedit="'+i+'" title="Editar">'+editIco+'</button><button class="row-act" data-fundup="'+i+'" title="Duplicar">'+dupIco+'</button><button class="row-act del" data-fundel="'+i+'" title="Excluir">'+delIco+'</button></div></td></tr>';
+}
 
-<div class="wstep" data-step="3">
-<div class="wz-title">Plano e Contrato</div>
-<div class="wz-sub">Selecione o plano, o contrato e a forma de envio</div>
-<div class="radio-group" data-radio="categoria" style="margin-bottom:14px">
-<div class="radio-opt sel" data-val="fibra"><span class="rd"></span>Planos fibra</div>
-<div class="radio-opt" data-val="wireless"><span class="rd"></span>Planos wireless</div>
-<div class="radio-opt" data-val="streaming"><span class="rd"></span>Streaming</div>
-<div class="radio-opt" data-val="gamer"><span class="rd"></span>Gamer</div>
-</div>
+function etapaRow(f,e,i,total){
+return '<tr><td><b>'+(i+1)+'</b></td><td><span style="display:inline-flex;align-items:center;gap:8px"><i style="width:10px;height:10px;border-radius:3px;background:'+e.cor+';display:inline-block;flex-shrink:0"></i><b style="color:var(--body-strong)">'+esc(e.nome)+'</b></span></td><td><i style="width:20px;height:20px;border-radius:6px;background:'+e.cor+';display:inline-block"></i></td><td>'+esc(e.sla)+'</td><td>'+(e.obrigatoria==='Sim'?'<span class="badge b-won">Sim</span>':'<span class="chip-soft">Não</span>')+'</td><td>'+(e.ativa==='Sim'?'<span class="badge b-won">Ativa</span>':'<span class="badge b-lost">Inativa</span>')+'</td><td><div class="cfg-acts"><button class="row-act" data-etpup="'+i+'" title="Subir"'+(i===0?' disabled style="opacity:.35;cursor:default"':'')+'>'+upIco+'</button><button class="row-act" data-etpdown="'+i+'" title="Descer"'+(i===total-1?' disabled style="opacity:.35;cursor:default"':'')+'>'+downIco+'</button><button class="row-act" data-etpedit="'+i+'" title="Editar">'+editIco+'</button><button class="row-act del" data-etpdel="'+i+'" title="Excluir">'+delIco+'</button></div></td></tr>';
+}
 
-<div class="prod-block" id="planoBlock">
-<div class="pb-label">Plano</div>
-<div class="select"><select id="planoSelect"></select><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg></div>
-</div>
+function fluxoRow(f,e,i,total){
+const opts=f.etapas.filter((x,xi)=>xi!==i).map(x=>x.nome).concat(['Perdido']);
+const checked=e.avancarPara||[];
+const items=opts.map(o=>'<label class="cfg-check-item'+(checked.includes(o)?' on':'')+'" data-fluxo-origin="'+i+'" data-val="'+escA(o)+'"><span class="cbox"></span>'+esc(o)+'</label>').join('');
+return '<div style="display:flex;gap:24px;padding:16px 20px;align-items:flex-start'+(i<total-1?';border-bottom:1px solid var(--surface-line)':'')+'">'+
+'<div style="min-width:170px;flex-shrink:0;padding-top:2px"><b style="color:var(--body-strong);font-size:13.5px">'+esc(e.nome)+'</b></div>'+
+'<div style="flex:1"><div style="font-size:12px;color:#68758a;font-weight:600;margin-bottom:9px">Pode avançar para:</div><div class="cfg-checks">'+items+'</div></div>'+
+'</div>';
+}
 
-<div class="opt-block">
-<div class="ob-label">Contrato</div>
-<div class="radio-group" data-radio="contrato">
-<div class="radio-opt sel" data-val="emprestimo"><span class="rd"></span>Empréstimo</div>
-<div class="radio-opt" data-val="comodato"><span class="rd"></span>Comodato</div>
-</div>
-</div>
-<div class="opt-block" style="margin-top:12px">
-<div class="ob-label">Forma de envio</div>
-<div class="radio-group" data-radio="envio">
-<div class="radio-opt sel" data-val="whatsapp"><span class="rd"></span>WhatsApp</div>
-<div class="radio-opt" data-val="email"><span class="rd"></span>E-mail</div>
-<div class="radio-opt" data-val="link"><span class="rd"></span>Gerar link</div>
-</div>
-</div>
+function renderFluxoCard(f){
+if(!f)return '';
+const rows=f.etapas.map((e,i)=>fluxoRow(f,e,i,f.etapas.length)).join('');
+const fx=f.fluxo||{permitirRetorno:'Não',acoes:[]};
+return '<div class="card" style="margin-bottom:18px" id="fluxoCard">'+
+'<div class="card-head"><h3>Fluxo entre Etapas</h3></div>'+
+'<div style="padding:14px 20px 4px;font-size:13px;color:#8a97ab">Configure quais movimentações são permitidas entre as etapas deste funil.</div>'+
+'<div>'+rows+'</div>'+
+'<div class="cfg-form" style="padding:18px 20px;border-top:1px solid var(--surface-line)">'+
+'<div class="cfg-field"><label class="cfg-flabel">Permitir retorno para etapa anterior</label><div class="radio-group" id="fluxoRetornoRG"><div class="radio-opt'+(fx.permitirRetorno==='Sim'?' sel':'')+'" data-val="Sim"><span class="rd"></span>Sim</div><div class="radio-opt'+(fx.permitirRetorno==='Não'?' sel':'')+'" data-val="Não"><span class="rd"></span>Não</div></div></div>'+
+'</div>'+
+'<div class="cfg-modal-foot" style="justify-content:space-between;align-items:center">'+
+'<span id="fluxoSavedMsg" style="font-size:12.5px;color:var(--signal);font-weight:600;opacity:0;transition:.25s">Fluxo salvo com sucesso!</span>'+
+'<button class="btn-primary" id="saveFluxoBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>Salvar Fluxo</button>'+
+'</div>'+
+'</div>';
+}
 
-<button class="btn-primary" id="btnEnviarContrato" style="margin-top:6px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>Enviar Contrato</button>
-<div id="envioMsg" class="result-box res-ok" style="display:none;margin-top:14px"><span class="ri"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span><div><b>Contrato enviado com sucesso.</b></div></div>
-</div>
+function renderCamposTab(f){
+if(!f)return '<div class="card"><div class="card-head"><h3>Campos obrigatórios para avanço</h3></div></div>';
+const rows=f.etapas.map((e,i)=>{
+const checked=e.camposAvanco||[];
+const items=MASTER_CAMPOS.map(c=>'<label class="cfg-check-item'+(checked.includes(c)?' on':'')+'" data-campos-origin="'+i+'" data-val="'+escA(c)+'"><span class="cbox"></span>'+esc(c)+'</label>').join('');
+return '<div style="padding:16px 20px'+(i<f.etapas.length-1?';border-bottom:1px solid var(--surface-line)':'')+'"><div style="font-size:13.5px;font-weight:700;color:var(--body-strong);margin-bottom:10px">'+esc(e.nome)+'</div><div class="cfg-checks">'+items+'</div></div>';
+}).join('');
+return '<div class="card"><div class="card-head"><h3>Campos obrigatórios para avanço</h3></div>'+
+'<div style="padding:14px 20px 0;font-size:13px;color:#8a97ab">Defina quais informações precisam estar preenchidas para permitir o avanço de cada etapa.</div>'+
+'<div>'+rows+'</div>'+
+'<div class="cfg-modal-foot" style="justify-content:space-between;align-items:center">'+
+'<span id="camposSavedMsg" style="font-size:12.5px;color:var(--signal);font-weight:600;opacity:0;transition:.25s">Configuração salva com sucesso!</span>'+
+'<button class="btn-primary" id="saveCamposBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>Salvar Campos Obrigatórios</button>'+
+'</div></div>';
+}
 
-<div class="wstep" data-step="4">
-<div class="wz-title">Assinatura</div>
-<div class="wz-sub">Acompanhe o status da assinatura do contrato</div>
-<div class="result-box" id="assinBox" style="background:#f1f4f8;margin-bottom:16px">
-<span class="ri" id="assinIco" style="background:#e2e7ee;color:#68758a"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span>
-<div><b id="assinTitle">Aguardando assinatura</b><small id="assinUltimo">Nenhum envio realizado ainda</small></div>
-</div>
-<div class="end-actions">
-<button class="btn-ghost" id="btnReenviar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>Reenviar</button>
-</div>
-<p style="font-size:12px;color:#8a97ab;margin-top:16px">Clique no status acima para simular a confirmação da assinatura.</p>
-</div>
+function proxAcaoChip(etapaIdx,subIdx,pa){
+return '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;border:1.5px solid var(--surface-line);border-radius:10px;padding:9px 12px;background:#fbfcfe">'+
+'<b style="font-size:12.5px;color:var(--body-strong)">'+esc(pa.acao)+'</b>'+
+'<label style="display:flex;align-items:center;gap:6px;font-size:12px;color:#68758a;cursor:pointer"><input type="checkbox" data-pa-auto data-etapa="'+etapaIdx+'" data-sub="'+subIdx+'"'+(pa.criarAuto==='Sim'?' checked':'')+'>Criar automaticamente</label>'+
+'<div class="select sm" style="min-width:120px"><select data-pa-prazo data-etapa="'+etapaIdx+'" data-sub="'+subIdx+'">'+PA_PRAZOS.filter(x=>x!=='Personalizado').concat(PA_PRAZOS.includes(pa.prazo)?[]:[pa.prazo]).map(pz=>'<option value="'+escA(pz)+'"'+(pz===pa.prazo?' selected':'')+'>'+esc(pz)+'</option>').join('')+'</select><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg></div>'+
+'<div class="select sm" style="min-width:120px"><select data-pa-resp data-etapa="'+etapaIdx+'" data-sub="'+subIdx+'">'+PA_RESPONSAVEIS.map(r=>'<option value="'+escA(r)+'"'+(r===pa.responsavel?' selected':'')+'>'+esc(r)+'</option>').join('')+'</select><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg></div>'+
+'<button class="row-act del" data-pa-remove data-etapa="'+etapaIdx+'" data-sub="'+subIdx+'" title="Remover" style="margin-left:auto">'+delIco+'</button>'+
+'</div>';
+}
+function renderProxAcoesEtapaCard(f){
+if(!f)return '';
+const rows=f.etapas.map((e,i)=>{
+const atual=e.proximasAcoes||[];
+const chips=atual.length?atual.map((pa,pi)=>proxAcaoChip(i,pi,pa)).join(''):'<div style="font-size:12.5px;color:#98a4b6">Nenhuma Próxima Ação configurada para esta etapa.</div>';
+const disponiveis=PROX_ACOES.filter(p=>p.status==='Ativo'&&!atual.some(a=>a.acao===p.nome));
+return '<div style="padding:16px 20px'+(i<f.etapas.length-1?';border-bottom:1px solid var(--surface-line)':'')+'">'+
+'<div style="font-size:13.5px;font-weight:700;color:var(--body-strong);margin-bottom:10px">'+esc(e.nome)+'</div>'+
+'<div style="display:flex;flex-direction:column;gap:8px">'+chips+'</div>'+
+'<div style="display:flex;gap:8px;align-items:center;margin-top:10px">'+
+'<div class="select sm" style="min-width:220px;flex:1"><select data-pa-add-select="'+i+'">'+(disponiveis.length?disponiveis.map(p=>'<option value="'+escA(p.nome)+'">'+esc(p.nome)+'</option>').join(''):'<option value="">Nenhuma disponível</option>')+'</select><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg></div>'+
+'<button class="btn-ghost btn-sm" data-pa-add="'+i+'"'+(disponiveis.length?'':' disabled')+'>'+plusIco+'Adicionar</button>'+
+'</div></div>';
+}).join('');
+return '<div class="card" style="margin-top:18px" id="proxAcoesEtapaCard"><div class="card-head"><h3>Próxima Ação sugerida por etapa</h3></div>'+
+'<div style="padding:14px 20px 0;font-size:13px;color:#8a97ab">Selecione quais modelos da Biblioteca de Próximas Ações serão sugeridos ao vendedor ao entrar em cada etapa. Para o vendedor, este recurso é sempre exibido como "Próxima Ação".</div>'+
+'<div>'+rows+'</div></div>';
+}
 
-<div class="wstep" data-step="5">
-<div class="final-head">
-<div class="fchk sm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div>
-<div>
-<h3>Concluir Venda</h3>
-<span class="status-pill">Pronto para finalizar</span>
-<span class="status-pill pending" style="margin-left:8px">Tempo da Venda: 04:37</span>
-</div>
-</div>
-<div class="resumo" style="margin-bottom:16px">
-<div class="resumo-title">Resumo da venda</div>
-<ul class="resumo-list" id="resumoList"></ul>
-</div>
-<div class="resumo">
-<div class="resumo-title">Checklist final</div>
-<ul class="resumo-list" id="checklistList">
-<li class="check-item" data-ck="cliente"><span class="cci"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>Criar Cliente</li>
-<li class="check-item" data-ck="contrato"><span class="cci"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>Criar Contrato</li>
-<li class="check-item" data-ck="cobranca"><span class="cci"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>Gerar Cobrança</li>
-<li class="check-item" data-ck="os"><span class="cci"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>Criar Ordem de Serviço</li>
-<li class="check-item" data-ck="instalacao"><span class="cci"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>Enviar para Instalação</li>
-</ul>
-</div>
-</div>
+function proxAcaoLibRow(p,i){
+return '<tr><td><b style="color:var(--body-strong)">'+esc(p.nome)+'</b>'+(p.descricao?'<br><small style="color:#8a97ab;font-size:11.5px">'+esc(p.descricao)+'</small>':'')+'</td><td>'+(p.etapa?'<span class="chip-soft">'+esc(p.etapa)+'</span>':'—')+'</td><td><span class="chip-soft">'+esc(p.tipo)+'</span></td><td>'+esc(p.prazo)+'</td><td>'+esc(p.prioridade)+'</td><td>'+(p.automatica==='Sim'?'<span class="badge b-won">Sim</span>':'<span class="chip-soft">Não</span>')+'</td><td>'+cfgBadge(p.status)+'</td><td><div class="cfg-acts"><button class="row-act" data-paedit="'+i+'" title="Editar">'+editIco+'</button><button class="row-act del" data-padel="'+i+'" title="Excluir">'+delIco+'</button></div></td></tr>';
+}
+function renderProxAcoesTab(){
+const rows=PROX_ACOES.map((p,i)=>proxAcaoLibRow(p,i)).join('');
+return '<div class="card"><div class="card-head"><h3>Biblioteca de Próximas Ações</h3><button class="btn-primary" id="newProxAcaoBtn">'+plusIco+'Nova Próxima Ação</button></div>'+
+'<div style="padding:14px 20px 0;font-size:13px;color:#8a97ab">Cadastre os modelos de ação que poderão ser sugeridos automaticamente durante o Fluxo da Venda. Internamente este recurso representa o Follow-up do CRM; para o vendedor, ele é sempre chamado de "Próxima Ação".</div>'+
+'<div class="table-wrap" style="margin-top:14px"><table class="cfg-table"><thead><tr><th>Nome</th><th>Etapa</th><th>Tipo</th><th>Prazo Padrão</th><th>Prioridade</th><th>Automática</th><th>Status</th><th></th></tr></thead><tbody>'+(rows||'')+'</tbody></table></div></div>';
+}
 
-</div>
-<div class="wz-sidebar" id="wzSidebar">
-<h4>Resumo da Venda</h4>
-<div class="wz-sum-item"><span class="lbl">Cliente</span><span class="val muted" id="sumCliente">—</span></div>
-<div class="wz-sum-item"><span class="lbl">Endereço</span><span class="val muted" id="sumEndereco">—</span></div>
-<div class="wz-sum-item"><span class="lbl">Cobertura</span><span class="val muted" id="sumCobertura">—</span></div>
-<div class="wz-sum-item"><span class="lbl">Plano</span><span class="val muted" id="sumPlano">—</span></div>
-<div class="wz-sum-item"><span class="lbl">Contrato</span><span class="val muted" id="sumContrato">—</span></div>
-<div class="wz-sum-item"><span class="lbl">Assinatura</span><span class="val muted" id="sumAssinatura">—</span></div>
-<div class="wz-sum-item"><span class="lbl">Vendedor</span><span class="val" id="sumVendedor">—</span></div>
-<h4 style="margin-top:4px">Próxima Ação</h4>
-<div class="wz-sum-item"><span class="val" id="wzProxAcaoTxt">Nenhuma ação pendente.</span></div>
-</div>
-</div>
+function renderAcoesTab(f){
+if(!f)return '<div class="card"><div class="card-head"><h3>Ações automáticas</h3></div></div>';
+const rows=f.etapas.map((e,i)=>{
+const checked=e.acoesAutomaticas||[];
+const items=AUTO_ACOES.map(c=>'<label class="cfg-check-item'+(checked.includes(c)?' on':'')+'" data-acao-origin="'+i+'" data-val="'+escA(c)+'"><span class="cbox"></span>'+esc(c)+'</label>').join('');
+return '<div style="padding:16px 20px'+(i<f.etapas.length-1?';border-bottom:1px solid var(--surface-line)':'')+'"><div style="font-size:13.5px;font-weight:700;color:var(--body-strong);margin-bottom:10px">'+esc(e.nome)+'</div><div class="cfg-checks">'+items+'</div></div>';
+}).join('');
+return '<div class="card"><div class="card-head"><h3>Ações automáticas</h3></div>'+
+'<div style="padding:14px 20px 0;font-size:13px;color:#8a97ab">Configure quais ações ocorrerão automaticamente ao entrar em cada etapa.</div>'+
+'<div>'+rows+'</div>'+
+'<div class="cfg-modal-foot" style="justify-content:space-between;align-items:center">'+
+'<span id="acoesSavedMsg" style="font-size:12.5px;color:var(--signal);font-weight:600;opacity:0;transition:.25s">Configuração salva com sucesso!</span>'+
+'<button class="btn-primary" id="saveAcoesBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>Salvar Ações Automáticas</button>'+
+'</div></div>';
+}
 
-<div class="wz-foot">
-<button class="btn-ghost" id="wzBack"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px"><polyline points="15 18 9 12 15 6"/></svg>Voltar</button>
-<button class="btn-ghost" id="wzSave"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>Salvar etapa</button>
-<button class="btn-ghost btn-loss" id="wzLoss"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>Perda</button>
-<button class="btn-primary" id="wzNext" disabled>Continuar<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px"><polyline points="9 18 15 12 9 6"/></svg></button>
-</div>
-</div>
-</div>
+function renderValidacoesTab(f){
+if(!f||!f.etapas.length)return '<div class="card"><div class="card-head"><h3>Regras de Validação</h3></div><div style="padding:18px 20px;font-size:13px;color:#8a97ab">Cadastre etapas para configurar validações.</div></div>';
+if(validEtapaIdx>=f.etapas.length)validEtapaIdx=0;
+const e=f.etapas[validEtapaIdx];
+const checked=e.validacoes||[];
+const etapaOptions=f.etapas.map((et,i)=>'<option value="'+i+'"'+(i===validEtapaIdx?' selected':'')+'>'+esc(et.nome)+'</option>').join('');
+const etapaSelector='<div class="card" style="margin-bottom:18px"><div class="card-head" style="border-bottom:none"><h3>Etapa</h3>'+
+'<div class="select sm" style="min-width:220px"><select id="validEtapaSelect">'+etapaOptions+'</select><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg></div></div></div>';
+const groupsHtml=VALID_GROUPS.map(g=>'<div style="padding:16px 20px;border-top:1px solid var(--surface-line)"><div style="font-size:12.5px;font-weight:700;color:var(--body-strong);margin-bottom:10px">'+esc(g.title)+'</div><div class="cfg-checks">'+g.items.map(it=>'<label class="cfg-check-item'+(checked.includes(it)?' on':'')+'" data-valid-item data-val="'+escA(it)+'"><span class="cbox"></span>'+esc(it)+'</label>').join('')+'</div></div>').join('');
+const acaoHtml='<div style="padding:16px 20px;border-top:1px solid var(--surface-line)"><div class="cfg-flabel" style="margin-bottom:9px">Quando uma validação não for atendida</div><div class="radio-group" id="validAcaoRG">'+VALID_ACOES.map(a=>'<div class="radio-opt'+(e.validacaoAcao===a?' sel':'')+'" data-val="'+escA(a)+'"><span class="rd"></span>'+esc(a)+'</div>').join('')+'</div></div>';
+const regrasCard='<div class="card" style="flex:1;min-width:320px"><div class="card-head"><h3>Regras de Validação</h3></div>'+
+'<div style="padding:14px 20px 0;font-size:13px;color:#8a97ab">Configure quais condições deverão ser atendidas antes de permitir o avanço para a próxima etapa.</div>'+
+groupsHtml+acaoHtml+
+'<div class="cfg-modal-foot" style="justify-content:space-between;align-items:center">'+
+'<span id="validSavedMsg" style="font-size:12.5px;color:var(--signal);font-weight:600;opacity:0;transition:.25s">Validações salvas com sucesso!</span>'+
+'<button class="btn-primary" id="saveValidBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>Salvar Validações</button>'+
+'</div></div>';
+const obrig=checked.length,opc=VALID_TOTAL_ITEMS-obrig;
+const resumoCard='<div class="card" style="width:260px;flex-shrink:0"><div class="card-head"><h3>Resumo da Etapa</h3></div>'+
+'<div style="padding:16px 20px;display:flex;flex-direction:column;gap:14px">'+
+'<div><div class="cfg-flabel">Etapa</div><b style="font-size:13.5px;color:var(--body-strong)">'+esc(e.nome)+'</b></div>'+
+'<div><div class="cfg-flabel">Quantidade de validações</div><b style="font-size:13.5px;color:var(--body-strong)">'+VALID_TOTAL_ITEMS+'</b></div>'+
+'<div><div class="cfg-flabel">Quantidade obrigatória</div><b style="font-size:13.5px;color:var(--accent)">'+obrig+'</b></div>'+
+'<div><div class="cfg-flabel">Quantidade opcional</div><b style="font-size:13.5px;color:var(--body-strong)">'+opc+'</b></div>'+
+'<div><div class="cfg-flabel">Status</div>'+(obrig>0?'<span class="badge b-won">Configurada</span>':'<span class="badge b-lost">Pendente</span>')+'</div>'+
+'</div></div>';
+return etapaSelector+'<div style="display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap">'+regrasCard+resumoCard+'</div>';
+}
 
-<div class="modal-overlay" id="cfgOverlay">
-<div class="cfgmodal">
-<div class="modal-top"><b id="cfgModalTitle" style="font-size:15px;color:var(--body-strong)">Registro</b><button class="modal-close" id="cfgCloseBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
-<div class="cfg-form" id="cfgForm"></div>
-<div class="cfg-modal-foot">
-<button class="btn-ghost" id="cfgCancel">Cancelar</button>
-<button class="btn-ghost" id="cfgBack" style="display:none">Voltar</button>
-<button class="btn-primary" id="cfgSave"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>Salvar</button>
-</div>
-</div>
-</div>
+function renderMotorTabs(){
+const tabs=[['funis','Funis'],['etapas','Etapas'],['fluxo','Fluxo'],['campos','Campos Obrigatórios'],['proxacoes','Próximas Ações'],['acoes','Ações Automáticas'],['validacoes','Validações']];
+return tabs.map(t=>'<button class="'+(motorTab===t[0]?'on':'')+'" data-tab="'+t[0]+'">'+t[1]+'</button>').join('');
+}
 
-<div class="modal-overlay" id="leadDetailOverlay">
-<div class="cfgmodal lead-detail-modal">
-<div class="modal-top"><b style="font-size:15px;color:var(--body-strong)">Detalhes do Lead</b><button class="modal-close" id="leadDetailCloseBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
-<div class="cfg-form" id="leadDetailForm">
-<div class="resumo" style="margin-bottom:16px">
-<div class="resumo-title">Informações do Lead</div>
-<ul class="resumo-list" id="leadDetailList"></ul>
-</div>
-<div class="cfg-field"><label class="cfg-flabel">Vendedor</label><div class="select"><select id="ldDetVendedor"></select><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg></div></div>
-</div>
-<div class="cfg-modal-foot"><button class="btn-ghost" id="leadDetailCancel">Cancelar</button><button class="btn-primary" id="leadDetailSave"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>Salvar</button></div>
-</div>
-</div>
+function renderFunisPanel(){
+const panel=document.getElementById('cfg-funis');
+const selFunil=FUNIS[funilSelIdx];
+const funOptions=FUNIS.map((f,i)=>'<option value="'+i+'"'+(i===funilSelIdx?' selected':'')+'>'+esc(f.nome)+'</option>').join('');
+const topSelector='<div class="card" style="margin-bottom:18px"><div class="card-head" style="border-bottom:none"><h3>Funil Atual</h3>'+
+(FUNIS.length?'<div class="select sm" style="min-width:220px"><select id="funilAtualSelect">'+funOptions+'</select><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg></div>':'')+
+'</div></div>';
 
-<div class="modal-overlay" id="leadOverlay">
-<div class="cfgmodal">
-<div class="modal-top"><b style="font-size:15px;color:var(--body-strong)">Novo Lead</b><button class="modal-close" id="leadCloseBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
-<div class="cfg-form" id="leadForm">
-<div class="fg"><label>Nome</label><input type="text" id="ldNome" placeholder="Ex.: Juliana Souza"></div>
-<div class="fg"><label>Telefone</label><input type="text" id="ldTelefone" placeholder="Ex.: (62) 98888-8888"></div>
-<div class="fg"><label>E-mail</label><input type="email" id="ldEmail" placeholder="Ex.: juliana.souza@email.com"></div>
-<div class="cfg-field"><label class="cfg-flabel">Origem</label><div class="select"><select id="ldOrigem"><option value="Indicação de cliente">Indicação de cliente</option><option value="Indicação de colaborador">Indicação de colaborador</option></select><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg></div></div>
-</div>
-<div class="cfg-modal-foot"><button class="btn-ghost" id="leadCancel">Cancelar</button><button class="btn-primary" id="leadSave"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" style="width:15px;height:15px"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Adicionar</button></div>
-</div>
-</div>
+const listRows=FUNIS.map((f,i)=>funRow(f,i)).join('');
+const tabFunis='<div class="card"><div class="card-head"><h3>Funis de venda</h3><button class="btn-primary" id="newFunilBtn">'+plusIco+'Novo Funil</button></div>'+
+'<div class="table-wrap"><table class="cfg-table"><thead><tr><th>Nome do Funil</th><th>Tipo</th><th>Qtd. Etapas</th><th>Status</th><th></th></tr></thead><tbody>'+listRows+'</tbody></table></div></div>';
 
-<div class="modal-overlay" id="dashOverlay">
-<div class="cfgmodal">
-<div class="modal-top"><b style="font-size:15px;color:var(--body-strong)">Novo item do dashboard</b><button class="modal-close" id="dashCloseBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
-<div class="cfg-form" id="dashForm">
-<div class="cfg-field"><label class="cfg-flabel">Tipo do item</label><div class="radio-group db-rg" data-k="itemtype"><div class="radio-opt" data-val="card"><span class="rd"></span>Card</div><div class="radio-opt sel" data-val="chart"><span class="rd"></span>Gráfico</div></div></div>
-<div class="fg"><label>Título</label><input type="text" id="dbTitle" placeholder="Ex.: Venda diária por vendedor"></div>
-<div class="cfg-field" data-dbfield="card"><label class="cfg-flabel">Métrica</label><div class="radio-group db-rg" data-k="cardmetric"><div class="radio-opt sel" data-val="vendas"><span class="rd"></span>Vendas</div><div class="radio-opt" data-val="valor"><span class="rd"></span>Valor</div><div class="radio-opt" data-val="negociacao"><span class="rd"></span>Negociação</div><div class="radio-opt" data-val="perda"><span class="rd"></span>Perda</div></div></div>
-<div class="cfg-field" data-dbfield="chart"><label class="cfg-flabel">Tipo de gráfico</label><div class="radio-group db-rg" data-k="charttype"><div class="radio-opt sel" data-val="bars"><span class="rd"></span>Barras</div><div class="radio-opt" data-val="pie"><span class="rd"></span>Pizza</div><div class="radio-opt" data-val="line"><span class="rd"></span>Linha</div></div></div>
-<div class="cfg-field" data-dbfield="chart"><label class="cfg-flabel">Dimensão</label><div class="radio-group db-rg" data-k="dimension"><div class="radio-opt sel" data-val="vendedor"><span class="rd"></span>Vendedor</div><div class="radio-opt" data-val="area"><span class="rd"></span>Área</div><div class="radio-opt" data-val="plano"><span class="rd"></span>Plano</div><div class="radio-opt" data-val="periodo"><span class="rd"></span>Período</div></div></div>
-<div class="cfg-field" data-dbfield="chart"><label class="cfg-flabel">Métrica</label><div class="radio-group db-rg" data-k="chartmetric"><div class="radio-opt sel" data-val="quantidade"><span class="rd"></span>Quantidade</div><div class="radio-opt" data-val="valor"><span class="rd"></span>Valor</div></div></div>
-<div class="cfg-field"><label class="cfg-flabel">Período</label><div class="radio-group db-rg" data-k="periodo"><div class="radio-opt sel" data-val="Diário"><span class="rd"></span>Diário</div><div class="radio-opt" data-val="Semanal"><span class="rd"></span>Semanal</div><div class="radio-opt" data-val="Mensal"><span class="rd"></span>Mensal</div></div></div>
-</div>
-<div class="cfg-modal-foot"><button class="btn-ghost" id="dashCancel">Cancelar</button><button class="btn-primary" id="dashSave"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" style="width:15px;height:15px"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Adicionar</button></div>
-</div>
-</div>
+const etapasRows=selFunil?selFunil.etapas.map((e,i)=>etapaRow(selFunil,e,i,selFunil.etapas.length)).join(''):'';
+const tabEtapas='<div class="card"><div class="card-head"><h3>Configuração das etapas</h3><button class="btn-primary" id="newEtapaBtn">'+plusIco+'Nova Etapa</button></div>'+
+'<div class="table-wrap"><table class="cfg-table"><thead><tr><th>Ordem</th><th>Nome da Etapa</th><th>Cor</th><th>SLA</th><th>Obrigatória</th><th>Ativa</th><th></th></tr></thead><tbody>'+etapasRows+'</tbody></table></div></div>';
 
-<div class="modal-overlay" id="funilOverlay">
-<div class="cfgmodal">
-<div class="modal-top"><b id="funilModalTitle" style="font-size:15px;color:var(--body-strong)">Novo Funil</b><button class="modal-close" id="funilCloseBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
-<div class="cfg-form" id="funilForm">
-<div class="fg"><label>Nome do Funil</label><input type="text" id="funNome" placeholder="Ex.: Funil Residencial"></div>
-<div class="fg"><label>Descrição</label><input type="text" id="funDescricao" placeholder="Ex.: Fluxo padrão para vendas residenciais"></div>
-<div class="cfg-field"><label class="cfg-flabel">Status</label><div class="radio-group" id="funStatusRG"><div class="radio-opt sel" data-val="Ativo"><span class="rd"></span>Ativo</div><div class="radio-opt" data-val="Inativo"><span class="rd"></span>Inativo</div></div></div>
-</div>
-<div class="cfg-modal-foot">
-<button class="btn-ghost" id="funilCancel">Cancelar</button>
-<button class="btn-primary" id="funilSave"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>Salvar</button>
-</div>
-</div>
-</div>
+const tabFluxo=renderFluxoCard(selFunil);
+const tabCampos=renderCamposTab(selFunil);
+const tabAcoes=renderAcoesTab(selFunil)+renderProxAcoesEtapaCard(selFunil);
+const tabProxAcoes=renderProxAcoesTab();
+const tabValidacoes=renderValidacoesTab(selFunil);
+const tabContentMap={funis:tabFunis,etapas:tabEtapas,fluxo:tabFluxo,campos:tabCampos,acoes:tabAcoes,proxacoes:tabProxAcoes,validacoes:tabValidacoes};
 
-<div class="modal-overlay" id="etapaOverlay">
-<div class="cfgmodal" style="width:760px">
-<div class="modal-top"><b id="etapaModalTitle" style="font-size:15px;color:var(--body-strong)">Nova Etapa</b><button class="modal-close" id="etapaCloseBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
-<div style="display:flex;flex:1;min-height:0;overflow:hidden">
-<div class="cfg-form" id="etapaForm" style="flex:1;min-width:0">
-<div class="fg"><label>Nome</label><input type="text" id="etpNome" placeholder="Ex.: Qualificado"></div>
-<div class="fg"><label>Cor</label><input type="color" id="etpCor" value="#0ea5b7" style="width:64px;height:42px;border:1px solid var(--surface-line);border-radius:10px;padding:3px;background:#fbfcfe;cursor:pointer"></div>
-<div class="fg"><label>Prazo máximo (SLA) <span class="opt">(hh:mm:ss)</span></label><input type="text" id="etpSla" inputmode="numeric" maxlength="8" placeholder="00:00:00"></div>
-<div class="cfg-field"><label class="cfg-flabel">Etapa obrigatória</label><div class="radio-group" id="etpObrigRG"><div class="radio-opt sel" data-val="Sim"><span class="rd"></span>Sim</div><div class="radio-opt" data-val="Não"><span class="rd"></span>Não</div></div></div>
-<div class="cfg-field"><label class="cfg-flabel">Etapa ativa</label><div class="radio-group" id="etpAtivaRG"><div class="radio-opt sel" data-val="Sim"><span class="rd"></span>Sim</div><div class="radio-opt" data-val="Não"><span class="rd"></span>Não</div></div></div>
-<div class="cfg-field"><label class="cfg-flabel">Permitir avançar para qualquer etapa</label><div class="radio-group" id="etpAvancarRG"><div class="radio-opt" data-val="Sim"><span class="rd"></span>Sim</div><div class="radio-opt sel" data-val="Não"><span class="rd"></span>Não</div></div></div>
-</div>
-</div>
-<div class="cfg-modal-foot">
-<button class="btn-ghost" id="etapaCancel">Cancelar</button>
-<button class="btn-primary" id="etapaSave"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>Salvar</button>
-</div>
-</div>
-</div>
+const motorCard='<div class="card" style="margin-bottom:18px" id="motorFunilCard"><div class="card-head"><h3>Motor do Funil</h3></div>'+
+'<div style="padding:14px 20px 0"><div class="seg" id="motorTabs" style="overflow-x:auto;max-width:100%">'+renderMotorTabs()+'</div></div>'+
+'<div id="motorTabContent" style="padding:18px 20px 20px">'+(tabContentMap[motorTab]||'')+'</div></div>';
 
-<div class="modal-overlay" id="proxAcaoOverlay">
-<div class="cfgmodal">
-<div class="modal-top"><b id="proxAcaoModalTitle" style="font-size:15px;color:var(--body-strong)">Nova Próxima Ação</b><button class="modal-close" id="proxAcaoCloseBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
-<div class="cfg-form" id="proxAcaoForm">
-<div class="fg"><label>Nome</label><input type="text" id="paNome" placeholder="Ex.: Confirmar assinatura"></div>
-<div class="fg"><label>Descrição <span class="opt">(opcional)</span></label><input type="text" id="paDescricao" placeholder="Ex.: Confirmar que o cliente assinou o contrato"></div>
-<div class="cfg-field"><label class="cfg-flabel">Etapa</label><div class="select"><select id="paEtapa"></select><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg></div></div>
-<div class="cfg-field"><label class="cfg-flabel">Tipo</label><div class="select"><select id="paTipo"><option value="Ligação">Ligação</option><option value="WhatsApp">WhatsApp</option><option value="E-mail">E-mail</option><option value="Tarefa">Tarefa</option><option value="Visita">Visita</option><option value="Outro">Outro</option></select><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg></div></div>
-<div class="fg"><label>Prazo padrão <span class="opt">(hh:mm:ss)</span></label><input type="text" id="paPrazo" inputmode="numeric" maxlength="8" placeholder="00:00:00"></div>
-<div class="cfg-field"><label class="cfg-flabel">Prioridade</label><div class="select"><select id="paPrioridade"><option value="Baixa">Baixa</option><option value="Normal">Normal</option><option value="Alta">Alta</option><option value="Crítica">Crítica</option></select><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg></div></div>
-<div class="cfg-field"><label class="cfg-flabel">Criar automaticamente</label><div class="radio-group" id="paAutoRG"><div class="radio-opt" data-val="Sim"><span class="rd"></span>Sim</div><div class="radio-opt sel" data-val="Não"><span class="rd"></span>Não</div></div></div>
-<div class="cfg-field"><label class="cfg-flabel">Status</label><div class="radio-group" id="paStatusRG"><div class="radio-opt sel" data-val="Ativo"><span class="rd"></span>Ativo</div><div class="radio-opt" data-val="Inativo"><span class="rd"></span>Inativo</div></div></div>
-</div>
-<div class="cfg-modal-foot">
-<button class="btn-ghost" id="proxAcaoCancel">Cancelar</button>
-<button class="btn-primary" id="proxAcaoSave"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>Salvar</button>
-</div>
-</div>
-</div>
+const preview=selFunil?selFunil.etapas.map(e=>'<div class="col" style="min-width:200px;flex:0 0 200px"><div class="col-head"><i class="dt" style="background:'+e.cor+'"></i><h4>'+esc(e.nome)+'</h4></div><div class="col-sum">SLA: '+esc(e.sla)+'</div></div>').join(''):'';
+const previewCard='<div class="card"><div class="card-head"><h3>Pré-visualização do funil</h3><span class="count">Ilustrativo · <b>'+esc(selFunil?selFunil.nome:'—')+'</b></span></div>'+
+'<div style="padding:18px 20px"><div class="board">'+preview+'</div></div></div>';
 
-<div class="modal-overlay" id="modeloOverlay">
-<div class="cfgmodal modelo-modal">
-<div class="modal-top"><b id="modeloModalTitle" style="font-size:15px;color:var(--body-strong)">Editar modelo</b><button class="modal-close" id="modeloCloseBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
-<div class="cfg-form" id="modeloForm"></div>
-<div class="cfg-modal-foot">
-<button class="btn-ghost" id="modeloModalCancel">Cancelar</button>
-<button class="btn-primary" id="modeloModalSave"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>Salvar</button>
-</div>
-</div>
-</div>
+panel.innerHTML=topSelector+previewCard+motorCard;
+attachFunisEvents();
+}
+
+function attachFunisEvents(){
+const panel=document.getElementById('cfg-funis');
+const nf=document.getElementById('newFunilBtn');if(nf)nf.addEventListener('click',()=>openFunilModal(null));
+panel.querySelectorAll('[data-funsel]').forEach(b=>b.addEventListener('click',()=>{funilSelIdx=parseInt(b.dataset.funsel);renderFunisPanel();}));
+panel.querySelectorAll('[data-funedit]').forEach(b=>b.addEventListener('click',()=>openFunilModal(parseInt(b.dataset.funedit))));
+panel.querySelectorAll('[data-fundup]').forEach(b=>b.addEventListener('click',()=>{const i=parseInt(b.dataset.fundup);const c=JSON.parse(JSON.stringify(FUNIS[i]));c.nome=c.nome+' (cópia)';FUNIS.splice(i+1,0,c);renderFunisPanel();}));
+panel.querySelectorAll('[data-fundel]').forEach(b=>b.addEventListener('click',()=>{const i=parseInt(b.dataset.fundel);if(confirm('Excluir este funil?')){FUNIS.splice(i,1);if(funilSelIdx>=FUNIS.length)funilSelIdx=Math.max(0,FUNIS.length-1);renderFunisPanel();}}));
+const fp=document.getElementById('funilAtualSelect');if(fp)fp.addEventListener('change',()=>{funilSelIdx=parseInt(fp.value);validEtapaIdx=0;renderFunisPanel();});
+panel.querySelectorAll('#motorTabs [data-tab]').forEach(b=>b.addEventListener('click',()=>{motorTab=b.dataset.tab;renderFunisPanel();}));
+const ne=document.getElementById('newEtapaBtn');if(ne)ne.addEventListener('click',()=>openEtapaModal(null));
+panel.querySelectorAll('[data-etpup]').forEach(b=>b.addEventListener('click',()=>{const i=parseInt(b.dataset.etpup);if(i>0){const arr=FUNIS[funilSelIdx].etapas;[arr[i-1],arr[i]]=[arr[i],arr[i-1]];renderFunisPanel();}}));
+panel.querySelectorAll('[data-etpdown]').forEach(b=>b.addEventListener('click',()=>{const i=parseInt(b.dataset.etpdown);const arr=FUNIS[funilSelIdx].etapas;if(i<arr.length-1){[arr[i+1],arr[i]]=[arr[i],arr[i+1]];renderFunisPanel();}}));
+panel.querySelectorAll('[data-etpedit]').forEach(b=>b.addEventListener('click',()=>openEtapaModal(parseInt(b.dataset.etpedit))));
+panel.querySelectorAll('[data-etpdel]').forEach(b=>b.addEventListener('click',()=>{const i=parseInt(b.dataset.etpdel);if(confirm('Excluir esta etapa?')){FUNIS[funilSelIdx].etapas.splice(i,1);renderFunisPanel();}}));
+panel.querySelectorAll('[data-fluxo-origin]').forEach(ci=>ci.addEventListener('click',e=>{e.preventDefault();ci.classList.toggle('on');}));
+panel.querySelectorAll('#fluxoRetornoRG .radio-opt').forEach(opt=>opt.addEventListener('click',()=>{opt.parentElement.querySelectorAll('.radio-opt').forEach(o=>o.classList.remove('sel'));opt.classList.add('sel');}));
+panel.querySelectorAll('[data-fluxo-acao]').forEach(ci=>ci.addEventListener('click',e=>{e.preventDefault();ci.classList.toggle('on');}));
+const sfb=document.getElementById('saveFluxoBtn');if(sfb)sfb.addEventListener('click',saveFluxo);
+panel.querySelectorAll('[data-campos-origin]').forEach(ci=>ci.addEventListener('click',e=>{e.preventDefault();ci.classList.toggle('on');}));
+const scb=document.getElementById('saveCamposBtn');if(scb)scb.addEventListener('click',saveCampos);
+panel.querySelectorAll('[data-acao-origin]').forEach(ci=>ci.addEventListener('click',e=>{e.preventDefault();ci.classList.toggle('on');}));
+const sab=document.getElementById('saveAcoesBtn');if(sab)sab.addEventListener('click',saveAcoes);
+const ves=document.getElementById('validEtapaSelect');if(ves)ves.addEventListener('change',()=>{validEtapaIdx=parseInt(ves.value);renderFunisPanel();});
+panel.querySelectorAll('[data-valid-item]').forEach(ci=>ci.addEventListener('click',e=>{e.preventDefault();ci.classList.toggle('on');}));
+panel.querySelectorAll('#validAcaoRG .radio-opt').forEach(opt=>opt.addEventListener('click',()=>{opt.parentElement.querySelectorAll('.radio-opt').forEach(o=>o.classList.remove('sel'));opt.classList.add('sel');}));
+const svb=document.getElementById('saveValidBtn');if(svb)svb.addEventListener('click',saveValidacoes);
+panel.querySelectorAll('[data-pa-auto]').forEach(cb=>cb.addEventListener('change',()=>{const et=parseInt(cb.dataset.etapa),su=parseInt(cb.dataset.sub);FUNIS[funilSelIdx].etapas[et].proximasAcoes[su].criarAuto=cb.checked?'Sim':'Não';}));
+panel.querySelectorAll('[data-pa-prazo]').forEach(sel=>sel.addEventListener('change',()=>{const et=parseInt(sel.dataset.etapa),su=parseInt(sel.dataset.sub);FUNIS[funilSelIdx].etapas[et].proximasAcoes[su].prazo=sel.value;}));
+panel.querySelectorAll('[data-pa-resp]').forEach(sel=>sel.addEventListener('change',()=>{const et=parseInt(sel.dataset.etapa),su=parseInt(sel.dataset.sub);FUNIS[funilSelIdx].etapas[et].proximasAcoes[su].responsavel=sel.value;}));
+panel.querySelectorAll('[data-pa-remove]').forEach(b=>b.addEventListener('click',()=>{const et=parseInt(b.dataset.etapa),su=parseInt(b.dataset.sub);FUNIS[funilSelIdx].etapas[et].proximasAcoes.splice(su,1);renderFunisPanel();}));
+panel.querySelectorAll('[data-pa-add]').forEach(b=>b.addEventListener('click',()=>{
+const et=parseInt(b.dataset.paAdd);
+const sel=panel.querySelector('[data-pa-add-select="'+et+'"]');
+if(!sel||!sel.value)return;
+const lib=PROX_ACOES.find(p=>p.nome===sel.value);
+if(!lib)return;
+FUNIS[funilSelIdx].etapas[et].proximasAcoes.push({acao:lib.nome,criarAuto:lib.automatica,prazo:lib.prazo,responsavel:'Vendedor'});
+renderFunisPanel();
+}));
+const npa=document.getElementById('newProxAcaoBtn');if(npa)npa.addEventListener('click',()=>openProxAcaoModal(null));
+panel.querySelectorAll('[data-paedit]').forEach(b=>b.addEventListener('click',()=>openProxAcaoModal(parseInt(b.dataset.paedit))));
+panel.querySelectorAll('[data-padel]').forEach(b=>b.addEventListener('click',()=>{const i=parseInt(b.dataset.padel);if(confirm('Excluir esta Próxima Ação da biblioteca?')){PROX_ACOES.splice(i,1);renderFunisPanel();}}));
+}
+
+function saveCampos(){
+const f=FUNIS[funilSelIdx];const panel=document.getElementById('cfg-funis');
+f.etapas.forEach((e,i)=>{e.camposAvanco=[...panel.querySelectorAll('[data-campos-origin="'+i+'"].on')].map(x=>x.dataset.val);});
+const msg=document.getElementById('camposSavedMsg');
+if(msg){msg.style.opacity='1';setTimeout(()=>{msg.style.opacity='0';},2200);}
+}
+
+function saveAcoes(){
+const f=FUNIS[funilSelIdx];const panel=document.getElementById('cfg-funis');
+f.etapas.forEach((e,i)=>{e.acoesAutomaticas=[...panel.querySelectorAll('[data-acao-origin="'+i+'"].on')].map(x=>x.dataset.val);});
+const msg=document.getElementById('acoesSavedMsg');
+if(msg){msg.style.opacity='1';setTimeout(()=>{msg.style.opacity='0';},2200);}
+}
+
+function saveValidacoes(){
+const f=FUNIS[funilSelIdx];const panel=document.getElementById('cfg-funis');
+const e=f.etapas[validEtapaIdx];if(!e)return;
+e.validacoes=[...panel.querySelectorAll('[data-valid-item].on')].map(x=>x.dataset.val);
+const acaoSel=panel.querySelector('#validAcaoRG .radio-opt.sel');
+e.validacaoAcao=acaoSel?acaoSel.dataset.val:'Bloquear avanço';
+renderFunisPanel();
+const msg=document.getElementById('validSavedMsg');
+if(msg){msg.style.opacity='1';setTimeout(()=>{msg.style.opacity='0';},2200);}
+}
+
+function saveFluxo(){
+const f=FUNIS[funilSelIdx];const panel=document.getElementById('cfg-funis');
+f.etapas.forEach((e,i)=>{e.avancarPara=[...panel.querySelectorAll('[data-fluxo-origin="'+i+'"].on')].map(x=>x.dataset.val);});
+const retornoSel=panel.querySelector('#fluxoRetornoRG .radio-opt.sel');
+f.fluxo={permitirRetorno:retornoSel?retornoSel.dataset.val:'Não',acoes:(f.fluxo&&f.fluxo.acoes)||[]};
+const msg=document.getElementById('fluxoSavedMsg');
+if(msg){msg.style.opacity='1';setTimeout(()=>{msg.style.opacity='0';},2200);}
+}
+
+/* Modal Funil */
+const funilOverlay=document.getElementById('funilOverlay');
+let funilEditIdx=null;
+function rgSet(id,val){document.querySelectorAll('#'+id+' .radio-opt').forEach(o=>o.classList.toggle('sel',o.dataset.val===val));}
+function rgVal(id){const s=document.querySelector('#'+id+' .radio-opt.sel');return s?s.dataset.val:'';}
+document.querySelectorAll('#funStatusRG .radio-opt').forEach(opt=>opt.addEventListener('click',()=>{opt.parentElement.querySelectorAll('.radio-opt').forEach(o=>o.classList.remove('sel'));opt.classList.add('sel');}));
+function openFunilModal(idx){
+funilEditIdx=idx;
+const f=idx!=null?FUNIS[idx]:{nome:'',descricao:'',tipo:'Pessoa Física',status:'Ativo'};
+document.getElementById('funilModalTitle').textContent=idx==null?'Novo Funil':'Editar Funil';
+document.getElementById('funNome').value=f.nome;
+document.getElementById('funDescricao').value=f.descricao;
+rgSet('funStatusRG',f.status);
+funilOverlay.classList.add('open');
+}
+function closeFunilModal(){funilOverlay.classList.remove('open')}
+document.getElementById('funilCloseBtn').addEventListener('click',closeFunilModal);
+document.getElementById('funilCancel').addEventListener('click',closeFunilModal);
+funilOverlay.addEventListener('click',e=>{if(e.target===funilOverlay)closeFunilModal()});
+document.getElementById('funilSave').addEventListener('click',()=>{
+const nome=document.getElementById('funNome').value.trim();
+if(!nome){document.getElementById('funNome').classList.add('err');return}
+document.getElementById('funNome').classList.remove('err');
+const rec={nome:nome,descricao:document.getElementById('funDescricao').value.trim(),tipo:(funilEditIdx!=null?FUNIS[funilEditIdx].tipo:''),status:rgVal('funStatusRG')};
+if(funilEditIdx==null){rec.etapas=[];FUNIS.push(rec);funilSelIdx=FUNIS.length-1;}
+else{Object.assign(FUNIS[funilEditIdx],rec);}
+closeFunilModal();renderFunisPanel();
+});
+
+/* Modal Etapa */
+const etapaOverlay=document.getElementById('etapaOverlay');
+let etapaEditIdx=null;
+document.querySelectorAll('#etpObrigRG .radio-opt,#etpAtivaRG .radio-opt,#etpAvancarRG .radio-opt').forEach(opt=>opt.addEventListener('click',()=>{opt.parentElement.querySelectorAll('.radio-opt').forEach(o=>o.classList.remove('sel'));opt.classList.add('sel');}));
+function openEtapaModal(idx){
+etapaEditIdx=idx;
+const arr=FUNIS[funilSelIdx].etapas;
+const e=idx!=null?arr[idx]:{nome:'',cor:'#0ea5b7',descricao:'',sla:'',obrigatoria:'Sim',ativa:'Sim',avancarQualquer:'Não',tipo:''};
+document.getElementById('etapaModalTitle').textContent=idx==null?'Nova Etapa':'Editar Etapa';
+document.getElementById('etpNome').value=e.nome;
+document.getElementById('etpCor').value=e.cor;
+const etpSlaEl=document.getElementById('etpSla');etpSlaEl.value=toClock(e.sla);clockMask(etpSlaEl);
+rgSet('etpObrigRG',e.obrigatoria);rgSet('etpAtivaRG',e.ativa);rgSet('etpAvancarRG',e.avancarQualquer);
+etapaOverlay.classList.add('open');
+}
+function closeEtapaModal(){etapaOverlay.classList.remove('open')}
+document.getElementById('etapaCloseBtn').addEventListener('click',closeEtapaModal);
+document.getElementById('etapaCancel').addEventListener('click',closeEtapaModal);
+etapaOverlay.addEventListener('click',e=>{if(e.target===etapaOverlay)closeEtapaModal()});
+document.getElementById('etapaSave').addEventListener('click',()=>{
+const nome=document.getElementById('etpNome').value.trim();
+if(!nome){document.getElementById('etpNome').classList.add('err');return}
+document.getElementById('etpNome').classList.remove('err');
+const rec={nome:nome,cor:document.getElementById('etpCor').value,sla:document.getElementById('etpSla').value.trim()||'—',obrigatoria:rgVal('etpObrigRG'),ativa:rgVal('etpAtivaRG'),avancarQualquer:rgVal('etpAvancarRG')};
+const arr=FUNIS[funilSelIdx].etapas;
+if(etapaEditIdx==null)arr.push(rec);else Object.assign(arr[etapaEditIdx],rec);
+closeEtapaModal();renderFunisPanel();
+});
+
+/* Modal Próxima Ação (Biblioteca) */
+const proxAcaoOverlay=document.getElementById('proxAcaoOverlay');
+let proxAcaoEditIdx=null;
+function openProxAcaoModal(idx){
+proxAcaoEditIdx=idx;
+const p=idx!=null?PROX_ACOES[idx]:{nome:'',descricao:'',etapa:'',tipo:'Ligação',prazo:'15 minutos',prioridade:'Normal',automatica:'Não',status:'Ativo'};
+document.getElementById('proxAcaoModalTitle').textContent=idx==null?'Nova Próxima Ação':'Editar Próxima Ação';
+document.getElementById('paNome').value=p.nome;
+document.getElementById('paDescricao').value=p.descricao||'';
+const paEtapaEl=document.getElementById('paEtapa');
+if(paEtapaEl){
+const paEtapas=((FUNIS[funilSelIdx]&&FUNIS[funilSelIdx].etapas)||[]).map(e=>e.nome).concat(p.etapa&&!((FUNIS[funilSelIdx]&&FUNIS[funilSelIdx].etapas)||[]).some(e=>e.nome===p.etapa)?[p.etapa]:[]);
+paEtapaEl.innerHTML='<option value="">Todas as etapas</option>'+paEtapas.map(n=>'<option value="'+escA(n)+'">'+esc(n)+'</option>').join('');
+paEtapaEl.value=p.etapa||'';
+}
+document.getElementById('paTipo').value=p.tipo;
+const paPrazoEl=document.getElementById('paPrazo');paPrazoEl.value=toClock(p.prazo);clockMask(paPrazoEl);
+document.getElementById('paPrioridade').value=p.prioridade;
+rgSet('paAutoRG',p.automatica);
+rgSet('paStatusRG',p.status);
+proxAcaoOverlay.classList.add('open');
+}
+function closeProxAcaoModal(){proxAcaoOverlay.classList.remove('open')}
+document.getElementById('proxAcaoCloseBtn').addEventListener('click',closeProxAcaoModal);
+document.getElementById('proxAcaoCancel').addEventListener('click',closeProxAcaoModal);
+proxAcaoOverlay.addEventListener('click',e=>{if(e.target===proxAcaoOverlay)closeProxAcaoModal()});
+document.getElementById('proxAcaoSave').addEventListener('click',()=>{
+const nome=document.getElementById('paNome').value.trim();
+if(!nome){document.getElementById('paNome').classList.add('err');return}
+document.getElementById('paNome').classList.remove('err');
+const rec={nome:nome,descricao:document.getElementById('paDescricao').value.trim(),etapa:(document.getElementById('paEtapa')||{value:''}).value,tipo:document.getElementById('paTipo').value,prazo:document.getElementById('paPrazo').value.trim()||'00:00:00',prioridade:document.getElementById('paPrioridade').value,automatica:rgVal('paAutoRG'),status:rgVal('paStatusRG')};
+if(proxAcaoEditIdx==null)PROX_ACOES.push(rec);else Object.assign(PROX_ACOES[proxAcaoEditIdx],rec);
+closeProxAcaoModal();renderFunisPanel();
+});
+
+renderFunisPanel();
