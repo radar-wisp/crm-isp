@@ -116,13 +116,16 @@ function renderModeloRows() {
     '<td><span class="chip-soft">' + esc(r.tipo) + '</span></td>' +
     '<td>' + cfgBadge(r.status) + '</td>' +
     '<td>' + esc(r.updatedAt || '—') + '</td>' +
-    '<td><div class="cfg-acts"><button class="row-act del" data-del="' + i + '">' + delIco + '</button></div></td>' +
+    '<td><div class="cfg-acts"><button class="row-act" data-mdl-edit="' + i + '">' + editIco + '</button><button class="row-act del" data-del="' + i + '">' + delIco + '</button></div></td>' +
     '</tr>'
   ).join('') : '<tr><td colspan="5" style="text-align:center;color:#98a4b6;padding:26px 0">Nenhum modelo encontrado.</td></tr>';
 
   tbody.querySelectorAll('.modelo-row').forEach(tr => {
-    tr.addEventListener('click', e => { if (e.target.closest('[data-del]')) return; openModeloDetail(parseInt(tr.dataset.idx)); });
+    tr.addEventListener('click', e => { if (e.target.closest('.cfg-acts')) return; openModeloDetail(parseInt(tr.dataset.idx)); });
   });
+  tbody.querySelectorAll('[data-mdl-edit]').forEach(b => b.addEventListener('click', e => {
+    e.stopPropagation(); openModeloModal(parseInt(b.dataset.mdlEdit));
+  }));
   tbody.querySelectorAll('[data-del]').forEach(b => b.addEventListener('click', e => {
     e.stopPropagation();
     if (confirm('Excluir este modelo?')) { CFG.modelo.data.splice(parseInt(b.dataset.del), 1); renderModeloRows(); }
@@ -307,3 +310,85 @@ document.getElementById('cfgSave').addEventListener('click', () => {
 /* desenha o painel já no novo padrão (o render genérico inicial de
  * config-engine.js já rodou antes deste arquivo carregar) */
 renderModeloList();
+
+/* ============================================================
+ * 4) Modal de configuração por tipo de modelo (800 x 600)
+ * Reaproveita a casca de modal já existente (.cfgmodal /
+ * .modal-top / .cfg-form / .cfg-modal-foot) e os mesmos campos
+ * (.fg, .cfg-field, .select, .radio-group) usados no restante de
+ * Configurações. Nenhum componente existente foi alterado.
+ * ============================================================ */
+const MODELO_TIPOS_CONTRATO = ['Residencial', 'Empresarial'];
+const MODELO_CATEGORIAS = ['Utility', 'Marketing', 'Service', 'Authentication'];
+const MODELO_CABECALHOS = ['Texto', 'Imagem', 'Documento', 'Vídeo'];
+const MODELO_ACOES = ['Resposta rápida', 'Ação'];
+const mdlChev = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>';
+
+const modeloOverlay = document.getElementById('modeloOverlay');
+const modeloForm = document.getElementById('modeloForm');
+let modeloModalIdx = null;
+
+function mdlInput(id, label, val, full) { return '<div class="fg' + (full ? ' full' : '') + '"><label>' + esc(label) + '</label><input type="text" id="' + id + '" value="' + escA(val || '') + '" placeholder="' + escA(label) + '"></div>'; }
+function mdlArea(id, label, val) { return '<div class="fg full"><label>' + esc(label) + '</label><textarea id="' + id + '" placeholder="' + escA(label) + '">' + esc(val || '') + '</textarea></div>'; }
+function mdlSelect(id, label, opts, val, full) { return '<div class="cfg-field' + (full ? ' full' : '') + '"><label class="cfg-flabel">' + esc(label) + '</label><div class="select"><select id="' + id + '">' + opts.map(o => '<option value="' + escA(o) + '"' + (o === val ? ' selected' : '') + '>' + esc(o) + '</option>').join('') + '</select>' + mdlChev + '</div></div>'; }
+function mdlRadio(id, label, opts, val, full) { return '<div class="cfg-field' + (full ? ' full' : '') + '"><label class="cfg-flabel">' + esc(label) + '</label><div class="radio-group" id="' + id + '">' + opts.map((o, n) => '<div class="radio-opt' + (o === (val || opts[0]) ? ' sel' : '') + '" data-val="' + escA(o) + '"><span class="rd"></span>' + esc(o) + '</div>').join('') + '</div></div>'; }
+function mdlDoc(id, label, html) {
+  const cmds = [['bold', '<b>N</b>'], ['italic', '<i>I</i>'], ['underline', '<u>S</u>'], ['insertUnorderedList', '• Lista'], ['insertOrderedList', '1. Lista']];
+  return '<div class="fg full"><label>' + esc(label) + '</label><div class="modelo-doc"><div class="modelo-doc-bar">' +
+    cmds.map(c => '<button type="button" class="chip-soft" data-cmd="' + c[0] + '">' + c[1] + '</button>').join('') +
+    '</div><div class="modelo-doc-area" id="' + id + '" contenteditable="true">' + (html || '') + '</div></div></div>';
+}
+
+function modeloModalBody(r) {
+  if (r.tipo === 'Modelo de E-mail')
+    return mdlInput('mdlAssunto', 'Assunto (Título do e-mail)', r.assunto, true) +
+      mdlDoc('mdlDocEmail', 'Documento (formatação)', r.corpo);
+  if (r.tipo === 'Modelo de WhatsApp')
+    return mdlInput('mdlNome', 'Nome', r.nome) +
+      mdlSelect('mdlCategoria', 'Categoria', MODELO_CATEGORIAS, r.waCategoria) +
+      mdlSelect('mdlCabTipo', 'Cabeçalho', MODELO_CABECALHOS, r.waCabTipo) +
+      mdlInput('mdlCabValor', 'Conteúdo do cabeçalho', r.waCabValor) +
+      mdlArea('mdlMensagem', 'Corpo da mensagem', r.mensagem) +
+      mdlInput('mdlRodape', 'Rodapé', r.waRodape, true) +
+      mdlRadio('mdlAcao', 'Tipo de ação', MODELO_ACOES, r.waAcao, true);
+  return mdlInput('mdlDocNome', 'Nome do documento', r.docNome || r.nome) +
+    mdlSelect('mdlTipoContrato', 'Tipo de contrato', MODELO_TIPOS_CONTRATO, r.docTipo) +
+    mdlSelect('mdlPerfil', 'Perfil de contrato', CFG.modelo.data.filter(m => m.tipo === 'Perfil de Contrato').map(m => m.nome), r.docPerfil, true) +
+    mdlDoc('mdlDocContrato', 'Documento (formatação)', r.documento);
+}
+
+function openModeloModal(idx) {
+  const r = CFG.modelo.data[idx];
+  if (!r) return;
+  modeloModalIdx = idx;
+  document.getElementById('modeloModalTitle').textContent = 'Editar modelo — ' + r.tipo;
+  modeloForm.innerHTML = modeloModalBody(r);
+  modeloForm.querySelectorAll('.radio-group .radio-opt').forEach(o => o.addEventListener('click', () => {
+    o.parentElement.querySelectorAll('.radio-opt').forEach(x => x.classList.remove('sel')); o.classList.add('sel');
+  }));
+  modeloForm.querySelectorAll('.modelo-doc-bar [data-cmd]').forEach(b => b.addEventListener('mousedown', e => {
+    e.preventDefault(); document.execCommand(b.dataset.cmd, false, null);
+  }));
+  modeloOverlay.classList.add('open');
+}
+function closeModeloModal() { modeloOverlay.classList.remove('open'); }
+
+function modeloModalSave() {
+  const r = CFG.modelo.data[modeloModalIdx];
+  if (!r) return closeModeloModal();
+  const v = id => { const el = document.getElementById(id); return el ? (el.isContentEditable ? el.innerHTML : el.value.trim()) : ''; };
+  if (r.tipo === 'Modelo de E-mail') { r.assunto = v('mdlAssunto'); r.corpo = v('mdlDocEmail'); }
+  else if (r.tipo === 'Modelo de WhatsApp') {
+    r.nome = v('mdlNome') || r.nome; r.waCategoria = v('mdlCategoria'); r.waCabTipo = v('mdlCabTipo');
+    r.waCabValor = v('mdlCabValor'); r.mensagem = v('mdlMensagem'); r.waRodape = v('mdlRodape');
+    const sel = modeloForm.querySelector('#mdlAcao .radio-opt.sel'); r.waAcao = sel ? sel.dataset.val : '';
+  } else { r.docNome = v('mdlDocNome'); r.docTipo = v('mdlTipoContrato'); r.docPerfil = v('mdlPerfil'); r.documento = v('mdlDocContrato'); }
+  r.updatedAt = modeloNow();
+  closeModeloModal();
+  if (modeloDetailIdx != null) renderModeloDetail(); else renderModeloRows();
+}
+
+document.getElementById('modeloModalSave').addEventListener('click', modeloModalSave);
+document.getElementById('modeloModalCancel').addEventListener('click', closeModeloModal);
+document.getElementById('modeloCloseBtn').addEventListener('click', closeModeloModal);
+modeloOverlay.addEventListener('click', e => { if (e.target === modeloOverlay) closeModeloModal(); });
