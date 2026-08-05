@@ -1,327 +1,124 @@
 /* ============================================================
  * Motor de Modelos — Configurações > Modelos
  * ------------------------------------------------------------
- * "Modelos" continua vivendo dentro do motor genérico de
- * Configurações (CFG.modelo, mesmo card/tabela/badge/botões do
- * resto da tela). Este arquivo apenas:
- *   1) estende CFG.modelo com os campos necessários (descrição,
- *      novos tipos, última alteração);
- *   2) substitui a forma de exibir esse painel específico por um
- *      padrão lista → detalhe (mesma área, sem navegação/rota
- *      nova), com conteúdo condicional por Tipo;
- *   3) reaproveita o modal de cadastro genérico já existente
- *      (cfgOverlay/cfgForm/openCfgEdit) para "Novo" e "Editar"
- *      das Informações Gerais.
- * Nada em engine/config-engine.js, modules/config.html, menu
- * lateral, cabeçalho ou nas demais abas de Configurações é
- * alterado — as funções globais existentes (renderCfg,
- * cfgColsHtml) são estendidas do mesmo jeito que
- * engine/persistence.js já faz com renderLeads/renderVenda.
+ * O módulo passa a ser responsável APENAS pela configuração de
+ * modelos de contrato, organizado em três abas — "Perfil de
+ * contrato", "Documentos" e "Aceite" — todas com adição, edição
+ * e exclusão.
+ *
+ * Continua vivendo dentro do painel genérico de Configurações
+ * (#cfg-modelo) e reaproveita os componentes já existentes:
+ * .toolbar, .seg, .card/.card-head, .cfg-table, .cfg-acts,
+ * .chip-soft, .badge, .fg, .select, .cfg-checks/.cfg-check-item
+ * e a casca de modal #modeloOverlay (.cfgmodal/.cfg-form/
+ * .cfg-modal-foot). Nenhum outro arquivo do projeto é alterado:
+ * renderCfg é estendido do mesmo jeito não-invasivo já usado por
+ * engine/persistence.js.
  * ============================================================ */
 
-const MODELO_TIPOS_LIST = ['Perfil de Contrato', 'Modelo de E-mail', 'Modelo de WhatsApp'];
+const MODELO_TIPOS_CONTRATO = ['Residencial', 'Empresarial'];
 
-/* Fonte de exemplo para a aba "Contratos" do Perfil de Contrato.
- * Não existe hoje um cadastro de contratos no protótipo — assim
- * como CFG.plan é a fonte usada por "Grupo de planos", esta lista
- * cumpre o mesmo papel para os vínculos de contrato. */
-const MODELO_CONTRATOS = [
-  { codigo: 'CT-1042', contrato: 'Adesão Fibra Residencial', tipoContrato: 'Residencial', status: 'Ativo' },
-  { codigo: 'CT-1088', contrato: 'Adesão Fibra Empresarial', tipoContrato: 'Empresarial', status: 'Ativo' },
-  { codigo: 'CT-1103', contrato: 'Renovação Anual', tipoContrato: 'Residencial', status: 'Ativo' },
-  { codigo: 'CT-1157', contrato: 'Adesão Combo Residencial', tipoContrato: 'Residencial', status: 'Inativo' }
+const MODELO_ACEITE_OPTS = [
+  ['email', 'Enviar no E-mail'],
+  ['whatsapp', 'Enviar no Whatsapp'],
+  ['selfie', 'Solicitar Selfie'],
+  ['assinatura', 'Solicitar assinatura'],
+  ['documentos', 'Solicitar documentos pessoais']
 ];
 
-/* valores de exemplo usados só na Preview/Pré-visualização */
-const MODELO_SAMPLE = { '{{cliente_nome}}': 'Maria Souza', '{{plano_nome}}': 'Fibra 500', '{{plano_valor}}': 'R$ 99,90' };
-function modeloApplySample(text) { return (text || '').replace(/\{\{[a-zA-Z0-9_]+\}\}/g, m => MODELO_SAMPLE[m] || m); }
-function modeloNow() { const d = new Date(), p = n => String(n).padStart(2, '0'); return p(d.getDate()) + '/' + p(d.getMonth() + 1) + '/' + d.getFullYear() + ' ' + p(d.getHours()) + ':' + p(d.getMinutes()); }
-function modeloInsertAtCursor(el, text) {
-  const start = el.selectionStart ?? el.value.length, end = el.selectionEnd ?? el.value.length;
-  el.value = el.value.slice(0, start) + text + el.value.slice(end);
-  el.focus(); const pos = start + text.length; el.setSelectionRange(pos, pos);
-}
+const MODELO_TABS = [
+  { key: 'perfil', label: 'Perfil de contrato' },
+  { key: 'documento', label: 'Documentos' },
+  { key: 'aceite', label: 'Aceite' }
+];
 
-/* ---- 1) Estende o registro genérico CFG.modelo ---- */
-CFG.modelo.cols = [
-  { key: 'nome', label: 'Nome do modelo', type: 'text' },
-  { key: 'descricao', label: 'Descrição', type: 'text' },
-  { key: 'tipo', label: 'Tipo', type: 'select', options: MODELO_TIPOS_LIST },
-  { key: 'status', label: 'Status', type: 'radio', options: ['Ativo', 'Inativo'] },
-  { key: 'updatedAt', label: 'Última alteração', type: 'text', hideInForm: true }
+/* ---- 1) Dados: três coleções dentro do registro CFG.modelo ---- */
+CFG.modelo.cols = [{ key: 'nome', label: 'Nome', type: 'text' }];
+CFG.modelo.perfis = [
+  { nome: 'Contrato Residencial Fibra' },
+  { nome: 'Contrato Empresarial' }
 ];
 CFG.modelo.data = [
-  { nome: 'Contrato Residencial Fibra', descricao: 'Perfil padrão para contratos de planos residenciais de fibra.', tipo: 'Perfil de Contrato', status: 'Ativo', updatedAt: '20/07/2026 09:14', vincContratos: ['CT-1042'], vincPlanos: ['Fibra 300', 'Fibra 500'] },
-  { nome: 'Boas-vindas ao cliente', descricao: 'Mensagem enviada após a conclusão da instalação.', tipo: 'Modelo de WhatsApp', status: 'Ativo', updatedAt: '22/07/2026 16:40', mensagem: 'Olá {{cliente_nome}}, seja bem-vindo(a) à Radar Internet! Seu plano {{plano_nome}} já está ativo.' },
-  { nome: 'Confirmação de instalação', descricao: 'E-mail enviado ao cliente quando a instalação é concluída.', tipo: 'Modelo de E-mail', status: 'Ativo', updatedAt: '24/07/2026 11:05', assunto: 'Sua instalação foi concluída!', corpo: '<p>Olá {{cliente_nome}},</p><p>Sua instalação do plano <b>{{plano_nome}}</b> foi concluída com sucesso.</p><p>Mensalidade: {{plano_valor}}</p>' }
+  {
+    nome: 'Adesão Fibra Residencial',
+    tipoContrato: 'Residencial',
+    perfil: 'Contrato Residencial Fibra',
+    aceiteEletronico: true,
+    documento: '<p>Contrato de prestação de serviços firmado entre a Radar Internet e <b>{{cliente_nome}}</b>.</p><p>Plano contratado: {{plano_nome}} — mensalidade de {{plano_valor}}.</p>'
+  }
+];
+CFG.modelo.aceites = [
+  { nome: 'Aceite padrão', email: true, whatsapp: true, selfie: false, assinatura: true, documentos: false }
 ];
 
-/* Passa a suportar hideInForm no motor genérico (usado só por 'updatedAt';
- * as demais chaves de CFG não usam essa flag, então o comportamento delas
- * não muda em nada). */
-const _origCfgColsHtml = cfgColsHtml;
-cfgColsHtml = function (cols, idx, c) { return _origCfgColsHtml(cols.filter(col => !col.hideInForm), idx, c); };
-
-/* ---- 2) estado da view (lista / detalhe) do painel Modelos ---- */
-let modeloDetailIdx = null;
-let modeloActiveTab = 'contratos';
-let modeloFilters = { q: '', tipo: '', status: '' };
-
-function modeloFilteredData() {
-  return CFG.modelo.data.map((r, i) => ({ r, i })).filter(({ r }) => {
-    if (modeloFilters.tipo && r.tipo !== modeloFilters.tipo) return false;
-    if (modeloFilters.status && r.status !== modeloFilters.status) return false;
-    if (modeloFilters.q) {
-      const q = modeloFilters.q.toLowerCase();
-      if (!(r.nome || '').toLowerCase().includes(q) && !(r.descricao || '').toLowerCase().includes(q)) return false;
-    }
-    return true;
-  });
+function modeloStore(tab) {
+  return tab === 'perfil' ? CFG.modelo.perfis : tab === 'aceite' ? CFG.modelo.aceites : CFG.modelo.data;
 }
 
-function renderModeloList() {
-  modeloDetailIdx = null;
+/* ---- 2) Lista por aba ---- */
+let modeloTab = 'perfil';
+
+function modeloHeads() {
+  if (modeloTab === 'perfil') return ['Nome'];
+  if (modeloTab === 'aceite') return ['Nome', 'Configurações'];
+  return ['Nome', 'Tipo de contrato', 'Perfil de contrato', 'Aceite eletrônico'];
+}
+
+function modeloRowHtml(r, i) {
+  const nome = '<td><span style="font-weight:600;color:var(--body-strong)">' + esc(r.nome) + '</span></td>';
+  let cells = nome;
+  if (modeloTab === 'documento') {
+    cells += '<td><span class="chip-soft">' + esc(r.tipoContrato || '—') + '</span></td>' +
+      '<td>' + esc(r.perfil || '—') + '</td>' +
+      '<td><span class="badge ' + (r.aceiteEletronico ? 'b-won">Sim' : 'b-lost">Não') + '</span></td>';
+  } else if (modeloTab === 'aceite') {
+    const on = MODELO_ACEITE_OPTS.filter(o => r[o[0]]);
+    cells += '<td>' + (on.length ? on.map(o => '<span class="chip-soft">' + esc(o[1]) + '</span>').join(' ') : '—') + '</td>';
+  }
+  return '<tr>' + cells +
+    '<td><div class="cfg-acts"><button class="row-act" data-mdl-edit="' + i + '">' + editIco + '</button>' +
+    '<button class="row-act del" data-mdl-del="' + i + '">' + delIco + '</button></div></td></tr>';
+}
+
+function renderModelo() {
   const panel = document.getElementById('cfg-modelo');
+  if (!panel) return;
+  const tab = MODELO_TABS.find(t => t.key === modeloTab);
+  const rows = modeloStore(modeloTab);
+  const heads = modeloHeads();
   panel.innerHTML =
-    '<div class="toolbar"><div class="search-row"><div class="field-search">' +
-    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>' +
-    '<input type="text" id="modeloSearch" placeholder="Pesquisar por nome ou descrição..."></div></div>' +
-    '<div class="filters">' +
-    '<div class="filter"><label>Tipo</label><div class="select"><select id="modeloFiltroTipo"><option value="">Todos os tipos</option>' +
-    MODELO_TIPOS_LIST.map(t => '<option value="' + escA(t) + '">' + esc(t) + '</option>').join('') +
-    '</select><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg></div></div>' +
-    '<div class="filter"><label>Status</label><div class="select"><select id="modeloFiltroStatus"><option value="">Todos os status</option><option value="Ativo">Ativo</option><option value="Inativo">Inativo</option></select><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg></div></div>' +
+    '<div class="toolbar"><div class="seg" id="modeloSeg">' +
+    MODELO_TABS.map(t => '<button data-tab="' + t.key + '"' + (t.key === modeloTab ? ' class="on"' : '') + '>' + esc(t.label) + '</button>').join('') +
     '</div></div>' +
-    '<div class="card"><div class="card-head"><h3>Modelos</h3><button class="btn-primary" id="new-modelo">' + plusIco + 'Novo</button></div>' +
-    '<div class="table-wrap"><table class="cfg-table"><thead><tr><th>Nome</th><th>Tipo</th><th>Status</th><th>Última alteração</th><th></th></tr></thead>' +
-    '<tbody id="modeloTbody"></tbody></table></div></div>';
+    '<div class="card"><div class="card-head"><h3>' + esc(tab.label) + '</h3>' +
+    '<button class="btn-primary" id="modeloNovo">' + plusIco + 'Novo</button></div>' +
+    '<div class="table-wrap"><table class="cfg-table"><thead><tr>' +
+    heads.map(h => '<th>' + h + '</th>').join('') + '<th></th></tr></thead><tbody>' +
+    (rows.length ? rows.map(modeloRowHtml).join('') :
+      '<tr><td colspan="' + (heads.length + 1) + '" style="text-align:center;color:#98a4b6;padding:26px 0">Nenhum registro cadastrado.</td></tr>') +
+    '</tbody></table></div></div>';
 
-  document.getElementById('modeloSearch').value = modeloFilters.q;
-  document.getElementById('modeloFiltroTipo').value = modeloFilters.tipo;
-  document.getElementById('modeloFiltroStatus').value = modeloFilters.status;
-  document.getElementById('new-modelo').addEventListener('click', () => openCfgEdit('modelo', null));
-  document.getElementById('modeloSearch').addEventListener('input', e => { modeloFilters.q = e.target.value; renderModeloRows(); });
-  document.getElementById('modeloFiltroTipo').addEventListener('change', e => { modeloFilters.tipo = e.target.value; renderModeloRows(); });
-  document.getElementById('modeloFiltroStatus').addEventListener('change', e => { modeloFilters.status = e.target.value; renderModeloRows(); });
-  renderModeloRows();
-}
-
-function renderModeloRows() {
-  const tbody = document.getElementById('modeloTbody');
-  if (!tbody) return;
-  const rows = modeloFilteredData();
-  tbody.innerHTML = rows.length ? rows.map(({ r, i }) =>
-    '<tr class="modelo-row" data-idx="' + i + '">' +
-    '<td><span style="font-weight:600;color:var(--body-strong)">' + esc(r.nome) + '</span></td>' +
-    '<td><span class="chip-soft">' + esc(r.tipo) + '</span></td>' +
-    '<td>' + cfgBadge(r.status) + '</td>' +
-    '<td>' + esc(r.updatedAt || '—') + '</td>' +
-    '<td><div class="cfg-acts"><button class="row-act" data-mdl-edit="' + i + '">' + editIco + '</button><button class="row-act del" data-del="' + i + '">' + delIco + '</button></div></td>' +
-    '</tr>'
-  ).join('') : '<tr><td colspan="5" style="text-align:center;color:#98a4b6;padding:26px 0">Nenhum modelo encontrado.</td></tr>';
-
-  tbody.querySelectorAll('.modelo-row').forEach(tr => {
-    tr.addEventListener('click', e => { if (e.target.closest('.cfg-acts')) return; openModeloDetail(parseInt(tr.dataset.idx)); });
-  });
-  tbody.querySelectorAll('[data-mdl-edit]').forEach(b => b.addEventListener('click', e => {
-    e.stopPropagation(); openModeloModal(parseInt(b.dataset.mdlEdit));
-  }));
-  tbody.querySelectorAll('[data-del]').forEach(b => b.addEventListener('click', e => {
-    e.stopPropagation();
-    if (confirm('Excluir este modelo?')) { CFG.modelo.data.splice(parseInt(b.dataset.del), 1); renderModeloRows(); }
+  panel.querySelectorAll('#modeloSeg button').forEach(b => b.addEventListener('click', () => { modeloTab = b.dataset.tab; renderModelo(); }));
+  document.getElementById('modeloNovo').addEventListener('click', () => openModeloModal(null));
+  panel.querySelectorAll('[data-mdl-edit]').forEach(b => b.addEventListener('click', () => openModeloModal(parseInt(b.dataset.mdlEdit))));
+  panel.querySelectorAll('[data-mdl-del]').forEach(b => b.addEventListener('click', () => {
+    if (confirm('Excluir este registro?')) { modeloStore(modeloTab).splice(parseInt(b.dataset.mdlDel), 1); renderModelo(); }
   }));
 }
 
-function openModeloDetail(idx) { modeloDetailIdx = idx; modeloActiveTab = 'contratos'; renderModeloDetail(); }
-
-function renderModeloDetail() {
-  const panel = document.getElementById('cfg-modelo');
-  const r = CFG.modelo.data[modeloDetailIdx];
-  if (!r) { renderModeloList(); return; }
-  panel.innerHTML =
-    '<div class="card">' +
-    '<div class="card-head"><div class="modelo-detail-head">' +
-    '<button class="btn-ghost" id="modeloVoltar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px"><polyline points="15 18 9 12 15 6"/></svg>Voltar</button>' +
-    '<h3>' + esc(r.nome) + '<small>' + esc(r.tipo) + '</small></h3>' +
-    '</div><button class="btn-ghost" id="modeloEditarInfo">' + editIco + 'Editar</button></div>' +
-    '<div class="modelo-info-grid">' +
-    '<div><label>Nome</label><span>' + esc(r.nome) + '</span></div>' +
-    '<div><label>Tipo</label><span>' + esc(r.tipo) + '</span></div>' +
-    '<div><label>Status</label><span>' + cfgBadge(r.status) + '</span></div>' +
-    '<div><label>Última alteração</label><span style="font-weight:500">' + esc(r.updatedAt || '—') + '</span></div>' +
-    '<div class="full"><label>Descrição</label><span style="font-weight:500">' + esc(r.descricao || '—') + '</span></div>' +
-    '</div>' +
-    modeloTipoBody(r) +
-    '</div>';
-
-  document.getElementById('modeloVoltar').addEventListener('click', renderModeloList);
-  document.getElementById('modeloEditarInfo').addEventListener('click', () => openCfgEdit('modelo', modeloDetailIdx));
-  modeloBindTipoBody(panel, r);
-}
-
-function modeloTipoBody(r) {
-  if (r.tipo === 'Perfil de Contrato') return modeloContratoBody(r);
-  if (r.tipo === 'Modelo de E-mail') return modeloEmailBody(r);
-  if (r.tipo === 'Modelo de WhatsApp') return modeloWhatsappBody(r);
-  return '<div class="modelo-form-body"><p style="color:#98a4b6">Este tipo de modelo ainda não tem uma visualização configurada.</p></div>';
-}
-function modeloBindTipoBody(panel, r) {
-  if (r.tipo === 'Perfil de Contrato') modeloBindContrato(panel, r);
-  else if (r.tipo === 'Modelo de E-mail') modeloBindEmail(panel, r);
-  else if (r.tipo === 'Modelo de WhatsApp') modeloBindWhatsapp(panel, r);
-}
-
-/* ---- Perfil de Contrato: abas Contratos / Planos (reaproveita .seg) ---- */
-function modeloLinkPanel(id, applyId, items, checkedList, labelFn) {
-  return '<div class="modelo-link-pop"><button class="btn-primary" id="' + id + 'Btn">' + plusIco + (id === 'modeloContrato' ? 'Vincular Contrato' : 'Vincular Plano') + '</button>' +
-    '<div class="cd-panel" id="' + id + 'Panel">' +
-    items.map(labelFn).map((label, n) => '<label class="cd-item' + (checkedList.includes(items[n].val) ? ' on' : '') + '" data-val="' + escA(items[n].val) + '"><span class="cbox"></span>' + label + '</label>').join('') +
-    '<div style="padding:8px 10px;border-top:1px solid var(--surface-line)"><button class="btn-primary" id="' + applyId + '" style="width:100%;height:34px;font-size:12.5px">Aplicar</button></div>' +
-    '</div></div>';
-}
-function modeloContratoBody(r) {
-  if (!r.vincContratos) r.vincContratos = [];
-  if (!r.vincPlanos) r.vincPlanos = [];
-  const contratoItems = MODELO_CONTRATOS.map(c => ({ val: c.codigo }));
-  const planoItems = CFG.plan.data.map(p => ({ val: p.plano }));
-  return '<div class="modelo-tabs-wrap">' +
-    '<div class="seg" id="modeloSeg">' +
-    '<button data-tab="contratos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Contratos</button>' +
-    '<button data-tab="planos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v6H4z"/><path d="M4 14h16v6H4z"/></svg>Planos</button>' +
-    '</div>' +
-    '<div class="modelo-tabpanel" data-tabpanel="contratos" style="margin-top:16px">' +
-    '<div class="card-head" style="padding:0 0 12px;border:none"><h3 style="font-size:14px">Contratos vinculados</h3>' +
-    modeloLinkPanel('modeloContrato', 'modeloContratoAplicar', MODELO_CONTRATOS.map(c => ({ val: c.codigo, c })), r.vincContratos, it => esc(it.c.codigo) + ' — ' + esc(it.c.contrato)) +
-    '</div>' +
-    '<div class="table-wrap"><table class="cfg-table"><thead><tr><th>Código</th><th>Contrato</th><th>Tipo de contrato</th><th>Status</th></tr></thead><tbody>' +
-    (r.vincContratos.length ? r.vincContratos.map(cod => { const c = MODELO_CONTRATOS.find(x => x.codigo === cod); return c ? '<tr><td><b>' + esc(c.codigo) + '</b></td><td>' + esc(c.contrato) + '</td><td><span class="chip-soft">' + esc(c.tipoContrato) + '</span></td><td>' + cfgBadge(c.status) + '</td></tr>' : ''; }).join('') : '<tr><td colspan="4" style="text-align:center;color:#98a4b6;padding:22px 0">Nenhum contrato vinculado.</td></tr>') +
-    '</tbody></table></div></div>' +
-    '<div class="modelo-tabpanel" data-tabpanel="planos" style="margin-top:16px">' +
-    '<div class="card-head" style="padding:0 0 12px;border:none"><h3 style="font-size:14px">Planos vinculados</h3>' +
-    modeloLinkPanel('modeloPlano', 'modeloPlanoAplicar', CFG.plan.data.map(p => ({ val: p.plano, p })), r.vincPlanos, it => esc(it.p.plano)) +
-    '</div>' +
-    '<div class="table-wrap"><table class="cfg-table"><thead><tr><th>Plano</th><th>Tecnologia</th><th>Status</th></tr></thead><tbody>' +
-    (r.vincPlanos.length ? r.vincPlanos.map(pn => { const p = CFG.plan.data.find(x => x.plano === pn); return p ? '<tr><td><b>' + esc(p.plano) + '</b></td><td>' + esc(p.tecnologia) + '</td><td>' + cfgBadge(p.status) + '</td></tr>' : ''; }).join('') : '<tr><td colspan="3" style="text-align:center;color:#98a4b6;padding:22px 0">Nenhum plano vinculado.</td></tr>') +
-    '</tbody></table></div></div>' +
-    '</div>';
-}
-function modeloBindContrato(panel, r) {
-  const seg = document.getElementById('modeloSeg');
-  const applyTab = () => {
-    seg.querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.tab === modeloActiveTab));
-    panel.querySelectorAll('.modelo-tabpanel').forEach(p => p.classList.toggle('on', p.dataset.tabpanel === modeloActiveTab));
-  };
-  seg.querySelectorAll('button').forEach(b => b.addEventListener('click', () => { modeloActiveTab = b.dataset.tab; applyTab(); }));
-  applyTab();
-
-  ['modeloContrato', 'modeloPlano'].forEach(prefix => {
-    const btn = document.getElementById(prefix + 'Btn'), pop = btn.closest('.modelo-link-pop');
-    btn.addEventListener('click', () => pop.classList.toggle('open'));
-    pop.querySelectorAll('.cd-item').forEach(it => it.addEventListener('click', e => { e.preventDefault(); it.classList.toggle('on'); }));
-  });
-  document.getElementById('modeloContratoAplicar').addEventListener('click', () => {
-    r.vincContratos = [...document.querySelectorAll('#modeloContratoPanel .cd-item.on')].map(x => x.dataset.val);
-    r.updatedAt = modeloNow(); renderModeloDetail();
-  });
-  document.getElementById('modeloPlanoAplicar').addEventListener('click', () => {
-    r.vincPlanos = [...document.querySelectorAll('#modeloPlanoPanel .cd-item.on')].map(x => x.dataset.val);
-    r.updatedAt = modeloNow(); renderModeloDetail();
-  });
-}
-
-/* fecha qualquer popover de vínculo aberto ao clicar fora dele */
-document.addEventListener('click', e => {
-  document.querySelectorAll('.modelo-link-pop.open').forEach(p => { if (!p.contains(e.target)) p.classList.remove('open'); });
-});
-
-/* ---- Modelo de E-mail ---- */
-function modeloEmailBody(r) {
-  return '<div class="modelo-form-body">' +
-    '<div class="fg"><label>Assunto</label><input type="text" id="modeloAssunto" value="' + escA(r.assunto || '') + '" placeholder="Assunto do e-mail"></div>' +
-    '<div class="fg"><label>Editor HTML</label><textarea id="modeloCorpo" class="mono" placeholder="Conteúdo em HTML...">' + esc(r.corpo || '') + '</textarea></div>' +
-    '<div class="fg"><label>Variáveis disponíveis</label><div class="modelo-vars">' + CFG.variavel.data.map(v => '<button type="button" class="chip-soft" data-var="' + escA(v.tag) + '">' + esc(v.tag) + '</button>').join('') + '</div></div>' +
-    '<div class="fg"><label>Preview</label><div class="modelo-preview" id="modeloPreview"></div></div>' +
-    '</div>' +
-    '<div class="modelo-form-foot"><button class="btn-ghost" id="modeloEnviarTeste">Enviar teste</button><button class="btn-primary" id="modeloSalvarConteudo">Salvar alterações</button></div>';
-}
-function modeloBindEmail(panel, r) {
-  const subjectEl = document.getElementById('modeloAssunto'), bodyEl = document.getElementById('modeloCorpo');
-  let lastField = bodyEl;
-  subjectEl.addEventListener('focus', () => lastField = subjectEl);
-  bodyEl.addEventListener('focus', () => lastField = bodyEl);
-  const updatePreview = () => {
-    document.getElementById('modeloPreview').innerHTML =
-      '<div class="prev-subject">' + esc(subjectEl.value || '(sem assunto)') + '</div>' + modeloApplySample(bodyEl.value);
-  };
-  subjectEl.addEventListener('input', updatePreview);
-  bodyEl.addEventListener('input', updatePreview);
-  updatePreview();
-  panel.querySelectorAll('.modelo-vars [data-var]').forEach(btn => btn.addEventListener('click', () => { modeloInsertAtCursor(lastField, btn.dataset.var); updatePreview(); }));
-  document.getElementById('modeloEnviarTeste').addEventListener('click', () => alert('Teste enviado para o e-mail cadastrado do usuário logado.'));
-  document.getElementById('modeloSalvarConteudo').addEventListener('click', () => {
-    r.assunto = subjectEl.value; r.corpo = bodyEl.value; r.updatedAt = modeloNow();
-    alert('Modelo salvo com sucesso.');
-    renderModeloDetail();
-  });
-}
-
-/* ---- Modelo de WhatsApp ---- */
-function modeloWhatsappBody(r) {
-  return '<div class="modelo-form-body">' +
-    '<div class="fg"><label>Mensagem</label><textarea id="modeloMensagem" placeholder="Digite a mensagem...">' + esc(r.mensagem || '') + '</textarea></div>' +
-    '<div class="fg"><label>Variáveis disponíveis</label><div class="modelo-vars">' + CFG.variavel.data.map(v => '<button type="button" class="chip-soft" data-var="' + escA(v.tag) + '">' + esc(v.tag) + '</button>').join('') + '</div></div>' +
-    '<div class="fg"><label>Pré-visualização</label><div class="modelo-wa-bubble" id="modeloWaPreview"></div></div>' +
-    '</div>' +
-    '<div class="modelo-form-foot"><button class="btn-ghost" id="modeloTestarEnvio">Testar envio</button><button class="btn-primary" id="modeloSalvarConteudo">Salvar alterações</button></div>';
-}
-function modeloBindWhatsapp(panel, r) {
-  const msgEl = document.getElementById('modeloMensagem');
-  const updatePreview = () => { document.getElementById('modeloWaPreview').textContent = modeloApplySample(msgEl.value) || 'Pré-visualização da mensagem...'; };
-  msgEl.addEventListener('input', updatePreview);
-  updatePreview();
-  panel.querySelectorAll('.modelo-vars [data-var]').forEach(btn => btn.addEventListener('click', () => { modeloInsertAtCursor(msgEl, btn.dataset.var); updatePreview(); }));
-  document.getElementById('modeloTestarEnvio').addEventListener('click', () => alert('Mensagem de teste enviada via WhatsApp.'));
-  document.getElementById('modeloSalvarConteudo').addEventListener('click', () => {
-    r.mensagem = msgEl.value; r.updatedAt = modeloNow();
-    alert('Modelo salvo com sucesso.');
-    renderModeloDetail();
-  });
-}
-
-/* ---- 3) plugagem no motor genérico (mesma técnica de extensão não-invasiva de engine/persistence.js) ---- */
+/* ---- 3) Plugagem no motor genérico (extensão não-invasiva) ---- */
 const _origRenderCfg = renderCfg;
 renderCfg = function (key) {
-  if (key === 'modelo') { if (modeloDetailIdx != null) renderModeloDetail(); else renderModeloList(); return; }
+  if (key === 'modelo') { renderModelo(); return; }
   return _origRenderCfg(key);
 };
 
-/* carimba "Última alteração" quando o modal genérico salva um registro de
- * Modelos (Novo / Editar Informações Gerais) — sem tocar no listener
- * original de #cfgSave em config-engine.js, só adiciona um segundo. */
-document.getElementById('cfgSave').addEventListener('click', () => {
-  if (cfgEditKey !== 'modelo') return;
-  const idx = cfgEditIdx == null ? CFG.modelo.data.length - 1 : cfgEditIdx;
-  const rec = CFG.modelo.data[idx];
-  if (!rec) return;
-  rec.updatedAt = modeloNow();
-  if (modeloDetailIdx != null) renderModeloDetail(); else renderModeloList();
-});
-
-/* desenha o painel já no novo padrão (o render genérico inicial de
- * config-engine.js já rodou antes deste arquivo carregar) */
-renderModeloList();
-
 /* ============================================================
- * 4) Modal de configuração por tipo de modelo (800 x 600)
- * Reaproveita a casca de modal já existente (.cfgmodal /
- * .modal-top / .cfg-form / .cfg-modal-foot) e os mesmos campos
- * (.fg, .cfg-field, .select, .radio-group) usados no restante de
- * Configurações. Nenhum componente existente foi alterado.
+ * 4) Modal de cadastro/edição por aba
+ * Reaproveita a casca #modeloOverlay já existente e os mesmos
+ * campos (.fg, .cfg-field, .select, .cfg-checks) do restante de
+ * Configurações.
  * ============================================================ */
-const MODELO_TIPOS_CONTRATO = ['Residencial', 'Empresarial'];
-const MODELO_CATEGORIAS = ['Utility', 'Marketing', 'Service', 'Authentication'];
-const MODELO_CABECALHOS = ['Texto', 'Imagem', 'Documento', 'Vídeo'];
-const MODELO_ACOES = ['Resposta rápida', 'Ação'];
 const mdlChev = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>';
 
 const modeloOverlay = document.getElementById('modeloOverlay');
@@ -329,66 +126,125 @@ const modeloForm = document.getElementById('modeloForm');
 let modeloModalIdx = null;
 
 function mdlInput(id, label, val, full) { return '<div class="fg' + (full ? ' full' : '') + '"><label>' + esc(label) + '</label><input type="text" id="' + id + '" value="' + escA(val || '') + '" placeholder="' + escA(label) + '"></div>'; }
-function mdlArea(id, label, val) { return '<div class="fg full"><label>' + esc(label) + '</label><textarea id="' + id + '" placeholder="' + escA(label) + '">' + esc(val || '') + '</textarea></div>'; }
 function mdlSelect(id, label, opts, val, full) { return '<div class="cfg-field' + (full ? ' full' : '') + '"><label class="cfg-flabel">' + esc(label) + '</label><div class="select"><select id="' + id + '">' + opts.map(o => '<option value="' + escA(o) + '"' + (o === val ? ' selected' : '') + '>' + esc(o) + '</option>').join('') + '</select>' + mdlChev + '</div></div>'; }
-function mdlRadio(id, label, opts, val, full) { return '<div class="cfg-field' + (full ? ' full' : '') + '"><label class="cfg-flabel">' + esc(label) + '</label><div class="radio-group" id="' + id + '">' + opts.map((o, n) => '<div class="radio-opt' + (o === (val || opts[0]) ? ' sel' : '') + '" data-val="' + escA(o) + '"><span class="rd"></span>' + esc(o) + '</div>').join('') + '</div></div>'; }
+function mdlChecks(id, label, opts, rec) {
+  return '<div class="cfg-field full"><label class="cfg-flabel">' + esc(label) + '</label><div class="cfg-checks" id="' + id + '">' +
+    opts.map(o => '<label class="cfg-check-item' + (rec[o[0]] ? ' on' : '') + '" data-val="' + escA(o[0]) + '"><span class="cbox"></span>' + esc(o[1]) + '</label>').join('') +
+    '</div></div>';
+}
+
+/* ---- editor "Documento": formatação aproximada do Word ---- */
+const MODELO_FONTS = ['Arial', 'Calibri', 'Georgia', 'Times New Roman', 'Verdana'];
+const MODELO_SIZES = [['1', '8'], ['2', '10'], ['3', '12'], ['4', '14'], ['5', '18'], ['6', '24'], ['7', '36']];
+function mdlAlignIco(pts) { return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">' + pts.map((p, n) => '<line x1="' + p[0] + '" y1="' + (6 + n * 4) + '" x2="' + p[1] + '" y2="' + (6 + n * 4) + '"/>').join('') + '</svg>'; }
+const MODELO_DOC_CMDS = [
+  ['bold', '<b>N</b>', 'Negrito'],
+  ['italic', '<i>I</i>', 'Itálico'],
+  ['underline', '<u>S</u>', 'Sublinhado'],
+  ['strikeThrough', '<s>T</s>', 'Tachado'],
+  ['justifyLeft', mdlAlignIco([[3, 21], [3, 15], [3, 21], [3, 15]]), 'Alinhar à esquerda'],
+  ['justifyCenter', mdlAlignIco([[3, 21], [6, 18], [3, 21], [6, 18]]), 'Centralizar'],
+  ['justifyRight', mdlAlignIco([[3, 21], [9, 21], [3, 21], [9, 21]]), 'Alinhar à direita'],
+  ['justifyFull', mdlAlignIco([[3, 21], [3, 21], [3, 21], [3, 21]]), 'Justificar'],
+  ['insertUnorderedList', '• Lista', 'Lista com marcadores'],
+  ['insertOrderedList', '1. Lista', 'Lista numerada'],
+  ['outdent', '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="10" y1="6" x2="21" y2="6"/><line x1="10" y1="12" x2="21" y2="12"/><line x1="10" y1="18" x2="21" y2="18"/><polyline points="7 9 4 12 7 15"/></svg>', 'Diminuir recuo'],
+  ['indent', '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="10" y1="6" x2="21" y2="6"/><line x1="10" y1="12" x2="21" y2="12"/><line x1="10" y1="18" x2="21" y2="18"/><polyline points="4 9 7 12 4 15"/></svg>', 'Aumentar recuo'],
+  ['removeFormat', '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7V4h16v3"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg>', 'Limpar formatação'],
+  ['undo', '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>', 'Desfazer'],
+  ['redo', '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.13-9.36L23 10"/></svg>', 'Refazer']
+];
+
 function mdlDoc(id, label, html) {
-  const cmds = [['bold', '<b>N</b>'], ['italic', '<i>I</i>'], ['underline', '<u>S</u>'], ['insertUnorderedList', '• Lista'], ['insertOrderedList', '1. Lista']];
-  return '<div class="fg full"><label>' + esc(label) + '</label><div class="modelo-doc"><div class="modelo-doc-bar">' +
-    cmds.map(c => '<button type="button" class="chip-soft" data-cmd="' + c[0] + '">' + c[1] + '</button>').join('') +
-    '</div><div class="modelo-doc-area" id="' + id + '" contenteditable="true">' + (html || '') + '</div></div></div>';
+  return '<div class="fg full"><label>' + esc(label) + '</label><div class="modelo-doc">' +
+    '<div class="modelo-doc-bar">' +
+    '<div class="select mdl-doc-sel"><select data-doccmd="fontName">' + MODELO_FONTS.map(f => '<option value="' + escA(f) + '">' + esc(f) + '</option>').join('') + '</select>' + mdlChev + '</div>' +
+    '<div class="select mdl-doc-sel xs"><select data-doccmd="fontSize">' + MODELO_SIZES.map(s => '<option value="' + s[0] + '"' + (s[0] === '3' ? ' selected' : '') + '>' + s[1] + '</option>').join('') + '</select>' + mdlChev + '</div>' +
+    MODELO_DOC_CMDS.map(c => '<button type="button" class="chip-soft" data-cmd="' + c[0] + '" title="' + escA(c[2]) + '">' + c[1] + '</button>').join('') +
+    '</div>' +
+    '<div class="modelo-doc-area" id="' + id + '" contenteditable="true">' + (html || '') + '</div></div>' +
+    '<div class="modelo-vars" data-docfor="' + id + '">' +
+    CFG.variavel.data.filter(v => v.status !== 'Inativo').map(v => '<button type="button" class="chip-soft" data-var="' + escA(v.tag) + '" title="' + escA(v.nome) + '">' + esc(v.tag) + '</button>').join('') +
+    '</div></div>';
+}
+
+function mdlDocFocus(area) {
+  if (document.activeElement !== area) {
+    area.focus();
+    const sel = window.getSelection();
+    if (sel && !area.contains(sel.anchorNode)) {
+      const rg = document.createRange();
+      rg.selectNodeContents(area); rg.collapse(false);
+      sel.removeAllRanges(); sel.addRange(rg);
+    }
+  }
+}
+function mdlBindDoc(root) {
+  root.querySelectorAll('.modelo-doc').forEach(doc => {
+    const area = doc.querySelector('.modelo-doc-area');
+    try { document.execCommand('styleWithCSS', false, true); } catch (e) { }
+    doc.querySelectorAll('[data-cmd]').forEach(b => b.addEventListener('mousedown', e => {
+      e.preventDefault(); mdlDocFocus(area); document.execCommand(b.dataset.cmd, false, null);
+    }));
+    doc.querySelectorAll('[data-doccmd]').forEach(s => {
+      s.addEventListener('mousedown', () => mdlDocFocus(area));
+      s.addEventListener('change', () => { mdlDocFocus(area); document.execCommand(s.dataset.doccmd, false, s.value); });
+    });
+    const vars = root.querySelector('.modelo-vars[data-docfor="' + area.id + '"]');
+    if (vars) vars.querySelectorAll('[data-var]').forEach(b => b.addEventListener('mousedown', e => {
+      e.preventDefault(); mdlDocFocus(area); document.execCommand('insertText', false, b.dataset.var);
+    }));
+  });
 }
 
 function modeloModalBody(r) {
-  if (r.tipo === 'Modelo de E-mail')
-    return mdlInput('mdlAssunto', 'Assunto (Título do e-mail)', r.assunto, true) +
-      mdlDoc('mdlDocEmail', 'Documento (formatação)', r.corpo);
-  if (r.tipo === 'Modelo de WhatsApp')
-    return mdlInput('mdlNome', 'Nome', r.nome) +
-      mdlSelect('mdlCategoria', 'Categoria', MODELO_CATEGORIAS, r.waCategoria) +
-      mdlSelect('mdlCabTipo', 'Cabeçalho', MODELO_CABECALHOS, r.waCabTipo) +
-      mdlInput('mdlCabValor', 'Conteúdo do cabeçalho', r.waCabValor) +
-      mdlArea('mdlMensagem', 'Corpo da mensagem', r.mensagem) +
-      mdlInput('mdlRodape', 'Rodapé', r.waRodape, true) +
-      mdlRadio('mdlAcao', 'Tipo de ação', MODELO_ACOES, r.waAcao, true);
-  return mdlInput('mdlDocNome', 'Nome do documento', r.docNome || r.nome) +
-    mdlSelect('mdlTipoContrato', 'Tipo de contrato', MODELO_TIPOS_CONTRATO, r.docTipo) +
-    mdlSelect('mdlPerfil', 'Perfil de contrato', CFG.modelo.data.filter(m => m.tipo === 'Perfil de Contrato').map(m => m.nome), r.docPerfil, true) +
-    mdlDoc('mdlDocContrato', 'Documento (formatação)', r.documento);
+  if (modeloTab === 'perfil') return mdlInput('mdlNome', 'Nome', r.nome, true);
+  if (modeloTab === 'aceite') return mdlInput('mdlNome', 'Nome', r.nome, true) +
+    mdlChecks('mdlAceiteChecks', 'Configurações do aceite', MODELO_ACEITE_OPTS, r);
+  return mdlInput('mdlNome', 'Nome', r.nome) +
+    mdlSelect('mdlTipoContrato', 'Tipo de contrato', MODELO_TIPOS_CONTRATO, r.tipoContrato) +
+    mdlSelect('mdlPerfil', 'Associar perfil de contrato', CFG.modelo.perfis.map(p => p.nome), r.perfil, true) +
+    mdlChecks('mdlDocChecks', 'Aceite', [['aceiteEletronico', 'Gerar aceite eletrônico']], r) +
+    mdlDoc('mdlDocumento', 'Documento', r.documento);
 }
 
 function openModeloModal(idx) {
-  const r = CFG.modelo.data[idx];
-  if (!r) return;
   modeloModalIdx = idx;
-  document.getElementById('modeloModalTitle').textContent = 'Editar modelo — ' + r.tipo;
+  const r = idx == null ? {} : modeloStore(modeloTab)[idx];
+  if (!r) return;
+  const tab = MODELO_TABS.find(t => t.key === modeloTab);
+  document.getElementById('modeloModalTitle').textContent = (idx == null ? 'Novo registro' : 'Editar registro') + ' — ' + tab.label;
   modeloForm.innerHTML = modeloModalBody(r);
-  modeloForm.querySelectorAll('.radio-group .radio-opt').forEach(o => o.addEventListener('click', () => {
-    o.parentElement.querySelectorAll('.radio-opt').forEach(x => x.classList.remove('sel')); o.classList.add('sel');
-  }));
-  modeloForm.querySelectorAll('.modelo-doc-bar [data-cmd]').forEach(b => b.addEventListener('mousedown', e => {
-    e.preventDefault(); document.execCommand(b.dataset.cmd, false, null);
-  }));
+  modeloForm.querySelectorAll('.cfg-check-item').forEach(ci => ci.addEventListener('click', e => { e.preventDefault(); ci.classList.toggle('on'); }));
+  mdlBindDoc(modeloForm);
   modeloOverlay.classList.add('open');
 }
 function closeModeloModal() { modeloOverlay.classList.remove('open'); }
 
 function modeloModalSave() {
-  const r = CFG.modelo.data[modeloModalIdx];
-  if (!r) return closeModeloModal();
   const v = id => { const el = document.getElementById(id); return el ? (el.isContentEditable ? el.innerHTML : el.value.trim()) : ''; };
-  if (r.tipo === 'Modelo de E-mail') { r.assunto = v('mdlAssunto'); r.corpo = v('mdlDocEmail'); }
-  else if (r.tipo === 'Modelo de WhatsApp') {
-    r.nome = v('mdlNome') || r.nome; r.waCategoria = v('mdlCategoria'); r.waCabTipo = v('mdlCabTipo');
-    r.waCabValor = v('mdlCabValor'); r.mensagem = v('mdlMensagem'); r.waRodape = v('mdlRodape');
-    const sel = modeloForm.querySelector('#mdlAcao .radio-opt.sel'); r.waAcao = sel ? sel.dataset.val : '';
-  } else { r.docNome = v('mdlDocNome'); r.docTipo = v('mdlTipoContrato'); r.docPerfil = v('mdlPerfil'); r.documento = v('mdlDocContrato'); }
-  r.updatedAt = modeloNow();
+  const nome = v('mdlNome');
+  if (!nome) { const el = document.getElementById('mdlNome'); if (el) { el.classList.add('err'); el.focus(); } return; }
+  const rec = modeloModalIdx == null ? {} : modeloStore(modeloTab)[modeloModalIdx];
+  rec.nome = nome;
+  if (modeloTab === 'aceite') {
+    MODELO_ACEITE_OPTS.forEach(o => { rec[o[0]] = !!modeloForm.querySelector('#mdlAceiteChecks .cfg-check-item.on[data-val="' + o[0] + '"]'); });
+  } else if (modeloTab === 'documento') {
+    rec.tipoContrato = v('mdlTipoContrato');
+    rec.perfil = v('mdlPerfil');
+    rec.aceiteEletronico = !!modeloForm.querySelector('#mdlDocChecks .cfg-check-item.on');
+    rec.documento = v('mdlDocumento');
+  }
+  if (modeloModalIdx == null) modeloStore(modeloTab).push(rec);
   closeModeloModal();
-  if (modeloDetailIdx != null) renderModeloDetail(); else renderModeloRows();
+  renderModelo();
 }
 
 document.getElementById('modeloModalSave').addEventListener('click', modeloModalSave);
 document.getElementById('modeloModalCancel').addEventListener('click', closeModeloModal);
 document.getElementById('modeloCloseBtn').addEventListener('click', closeModeloModal);
 modeloOverlay.addEventListener('click', e => { if (e.target === modeloOverlay) closeModeloModal(); });
+
+/* desenha o painel já no novo padrão (o render genérico inicial de
+ * config-engine.js já rodou antes deste arquivo carregar) */
+renderModelo();
