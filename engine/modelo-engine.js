@@ -48,7 +48,7 @@ CFG.modelo.data = [
   }
 ];
 CFG.modelo.aceites = [
-  { nome: 'Aceite padrão', email: true, whatsapp: true, selfie: false, assinatura: true, documentos: false }
+  { nome: 'Aceite padrão', docsVinculados: ['Adesão Fibra Residencial'], email: true, whatsapp: true, selfie: false, assinatura: true, documentos: false }
 ];
 
 function modeloStore(tab) {
@@ -60,7 +60,7 @@ let modeloTab = 'perfil';
 
 function modeloHeads() {
   if (modeloTab === 'perfil') return ['Nome'];
-  if (modeloTab === 'aceite') return ['Nome', 'Configurações'];
+  if (modeloTab === 'aceite') return ['Nome', 'Documentos vinculados', 'Configurações'];
   return ['Nome', 'Tipo de contrato', 'Perfil de contrato', 'Aceite eletrônico'];
 }
 
@@ -72,8 +72,10 @@ function modeloRowHtml(r, i) {
       '<td>' + esc(r.perfil || '—') + '</td>' +
       '<td><span class="badge ' + (r.aceiteEletronico ? 'b-won">Sim' : 'b-lost">Não') + '</span></td>';
   } else if (modeloTab === 'aceite') {
+    const docs = r.docsVinculados || [];
     const on = MODELO_ACEITE_OPTS.filter(o => r[o[0]]);
-    cells += '<td>' + (on.length ? on.map(o => '<span class="chip-soft">' + esc(o[1]) + '</span>').join(' ') : '—') + '</td>';
+    cells += '<td>' + (docs.length ? docs.map(d => '<span class="chip-soft">' + esc(d) + '</span>').join(' ') : '—') + '</td>' +
+      '<td>' + (on.length ? on.map(o => '<span class="chip-soft">' + esc(o[1]) + '</span>').join(' ') : '—') + '</td>';
   }
   return '<tr>' + cells +
     '<td><div class="cfg-acts"><button class="row-act" data-mdl-edit="' + i + '">' + editIco + '</button>' +
@@ -131,6 +133,16 @@ function mdlChecks(id, label, opts, rec) {
   return '<div class="cfg-field full"><label class="cfg-flabel">' + esc(label) + '</label><div class="cfg-checks" id="' + id + '">' +
     opts.map(o => '<label class="cfg-check-item' + (rec[o[0]] ? ' on' : '') + '" data-val="' + escA(o[0]) + '"><span class="cbox"></span>' + esc(o[1]) + '</label>').join('') +
     '</div></div>';
+}
+
+function mdlCheckdrop(id, label, opts, arr) {
+  const sel = Array.isArray(arr) ? arr : [];
+  return '<div class="cfg-field full"><label class="cfg-flabel">' + esc(label) + '</label>' +
+    '<div class="checkdrop" id="' + id + '"><button type="button" class="cd-btn"><span class="cd-sum">' +
+    esc(sel.length ? sel.length + ' selecionado(s)' : label) + '</span>' + mdlChev + '</button><div class="cd-panel">' +
+    (opts.length ? opts.map(o => '<label class="cd-item' + (sel.includes(o) ? ' on' : '') + '" data-val="' + escA(o) + '"><span class="cbox"></span>' + esc(o) + '</label>').join('') :
+      '<label class="cd-item" style="cursor:default;color:#98a4b6">Nenhum documento cadastrado.</label>') +
+    '</div></div></div>';
 }
 
 /* ---- editor "Documento": formatação aproximada do Word ---- */
@@ -200,6 +212,7 @@ function mdlBindDoc(root) {
 function modeloModalBody(r) {
   if (modeloTab === 'perfil') return mdlInput('mdlNome', 'Nome', r.nome, true);
   if (modeloTab === 'aceite') return mdlInput('mdlNome', 'Nome', r.nome, true) +
+    mdlCheckdrop('mdlAceiteDocs', 'Documentos vinculados', CFG.modelo.data.map(d => d.nome), r.docsVinculados) +
     mdlChecks('mdlAceiteChecks', 'Configurações do aceite', MODELO_ACEITE_OPTS, r);
   return mdlInput('mdlNome', 'Nome', r.nome) +
     mdlSelect('mdlTipoContrato', 'Tipo de contrato', MODELO_TIPOS_CONTRATO, r.tipoContrato) +
@@ -216,6 +229,12 @@ function openModeloModal(idx) {
   document.getElementById('modeloModalTitle').textContent = (idx == null ? 'Novo registro' : 'Editar registro') + ' — ' + tab.label;
   modeloForm.innerHTML = modeloModalBody(r);
   modeloForm.querySelectorAll('.cfg-check-item').forEach(ci => ci.addEventListener('click', e => { e.preventDefault(); ci.classList.toggle('on'); }));
+  modeloForm.querySelectorAll('.cd-btn').forEach(b => b.addEventListener('click', () => b.closest('.checkdrop').classList.toggle('open')));
+  modeloForm.querySelectorAll('.cd-item[data-val]').forEach(it => it.addEventListener('click', e => {
+    e.preventDefault(); it.classList.toggle('on');
+    const cd = it.closest('.checkdrop'), n = cd.querySelectorAll('.cd-item.on').length;
+    cd.querySelector('.cd-sum').textContent = n ? n + ' selecionado(s)' : cd.closest('.cfg-field').querySelector('.cfg-flabel').textContent;
+  }));
   mdlBindDoc(modeloForm);
   modeloOverlay.classList.add('open');
 }
@@ -228,6 +247,7 @@ function modeloModalSave() {
   const rec = modeloModalIdx == null ? {} : modeloStore(modeloTab)[modeloModalIdx];
   rec.nome = nome;
   if (modeloTab === 'aceite') {
+    rec.docsVinculados = [...modeloForm.querySelectorAll('#mdlAceiteDocs .cd-item.on')].map(x => x.dataset.val);
     MODELO_ACEITE_OPTS.forEach(o => { rec[o[0]] = !!modeloForm.querySelector('#mdlAceiteChecks .cfg-check-item.on[data-val="' + o[0] + '"]'); });
   } else if (modeloTab === 'documento') {
     rec.tipoContrato = v('mdlTipoContrato');
