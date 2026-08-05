@@ -285,6 +285,7 @@ else{wzNext.textContent='Continuar';wzNext.disabled=false;}
 document.querySelector('.wz-body').scrollTop=0;
 if(n===5)buildResumo();
 updateSidebar();
+renderWzProxAcao();
 }
 wzNext.addEventListener('click',()=>{
 if(step===5){
@@ -338,6 +339,62 @@ if(step===5)return 'Nenhuma ação pendente.';
 return 'Nenhuma ação pendente.';
 }
 
+/* ===== Card "🎯 O que fazer agora" =====
+ * Todo o conteúdo vem de Configurações > Motor do Funil > Próximas Ações
+ * (etapa.proximasAcoes + Biblioteca PROX_ACOES). Nada é fixo no código:
+ * qualquer alteração feita pelo administrador reflete aqui automaticamente. */
+const WZ_PA_BTN={'Ligação':'Ligar para Cliente','WhatsApp':'Enviar WhatsApp','E-mail':'Enviar E-mail','Tarefa':'Registrar Tarefa','Visita':'Agendar Visita','Outro':'Executar Ação'};
+let wzPaFeitas=[],wzPaAdiadas=[];
+function wzEtapasAtivas(){
+const funis=(typeof FUNIS!=='undefined')?FUNIS:[];
+const f=funis[(typeof vFunilSelIdx!=='undefined')?vFunilSelIdx:0];
+return f?f.etapas.filter(e=>e.ativa==='Sim'):[];
+}
+/* Próxima ação pendente: começa pela etapa atual e, quando todas as ações
+ * dela já foram executadas, segue para as etapas seguintes do funil. */
+function wzPaPendente(){
+const ativas=wzEtapasAtivas();
+const atual=ativas[step-1];
+if(!atual||!(atual.proximasAcoes||[]).length)return null;
+const cands=[];
+for(let i=step-1;i<ativas.length;i++){
+const e=ativas[i];
+(e.proximasAcoes||[]).forEach(pa=>{const key=e.nome+'||'+pa.acao;if(wzPaFeitas.indexOf(key)===-1)cands.push({etapa:e,pa:pa,key:key});});
+}
+return cands.find(c=>wzPaAdiadas.indexOf(c.key)===-1)||cands[0]||null;
+}
+function renderWzProxAcao(){
+const card=document.getElementById('wzProxAcaoCard');
+if(!card)return;
+const total=WZ_DEFAULT_LABELS.length;
+const pct=Math.round(step/total*100);
+const pend=wzPaPendente();
+let body='<div class="card-head"><h3>🎯 O que fazer agora</h3></div>';
+if(!pend){
+body+='<div class="pa-empty">Nenhuma próxima ação configurada para esta etapa.</div>';
+}else{
+const modelo=(typeof PROX_ACOES!=='undefined')?PROX_ACOES.find(p=>p.nome===pend.pa.acao):null;
+const tipo=modelo?modelo.tipo:'Outro';
+const prazo=pend.pa.prazo||(modelo?modelo.prazo:'')||'—';
+const prio=modelo?modelo.prioridade:'—';
+const desc=modelo&&modelo.descricao?modelo.descricao:'';
+body+='<div class="pa-item"><div class="pa-ico">'+(WZ_PA_ICO[tipo]||'📌')+'</div><div>'+
+'<div class="pa-title">'+esc(pend.pa.acao)+'</div>'+
+'<div class="pa-when">Prazo: '+esc(prazo)+' · Prioridade: '+esc(prio)+'</div>'+
+(desc?'<div class="pa-motivo">'+esc(desc)+'</div>':'')+
+'</div></div>'+
+'<div class="pa-foot"><button class="btn-primary btn-sm" id="wzPaExec">'+esc(WZ_PA_BTN[tipo]||WZ_PA_BTN['Outro'])+'</button>'+
+/* Adiar só é oferecido quando a prioridade configurada permite. */
+(prio!=='Crítica'?'<button class="btn-ghost btn-sm" id="wzPaAdiar">Adiar</button>':'')+'</div>';
+}
+body+='<div style="padding:0 18px 16px"><div class="chk-prog"><div class="bar"><i style="width:'+pct+'%"></i></div><b>Etapa '+step+' de '+total+'</b></div></div>';
+card.innerHTML=body;
+const bx=document.getElementById('wzPaExec');
+if(bx)bx.addEventListener('click',()=>{wzPaFeitas.push(pend.key);renderWzProxAcao();});
+const ba=document.getElementById('wzPaAdiar');
+if(ba)ba.addEventListener('click',()=>{if(wzPaAdiadas.indexOf(pend.key)===-1)wzPaAdiadas.push(pend.key);renderWzProxAcao();});
+}
+
 function initials(n){const p=n.trim().split(/\s+/).filter(Boolean);return((p[0]?p[0][0]:'')+(p[1]?p[1][0]:'')).toUpperCase()||'--'}
 function fillCadastro(l){
 document.getElementById('cadNome').value=l.name;
@@ -375,6 +432,7 @@ viabResult.style.display='none';step1ok=false;coberturaStatus=null;
 assinado=false;contratoEnviado=false;
 envioMsg.style.display='none';
 document.getElementById('assinUltimo').textContent='Nenhum envio realizado ainda';
+wzPaFeitas=[];wzPaAdiadas=[];
 applyWzStepLabels();
 showStep(1);
 renderAssinatura();
