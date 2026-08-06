@@ -1,8 +1,7 @@
 /* ============================================================
- * Assistente de Venda (modal wizard) — viabilidade, cadastro, plano,
- * assinatura e conclusão. Compartilhado entre Leads, Funil e Venda.
- * Extraído do <script> original (bloco contíguo, ordem de execução
- * preservada). Nenhuma linha de lógica foi reescrita.
+ * Assistente de Venda (modal wizard). Compartilhado entre Leads, Funil
+ * e Venda. Etapas, campos, validações, ações automáticas e progresso são
+ * construídos a partir do Motor do Funil (engine/funnel-runtime.js).
  * ============================================================ */
 const wzOverlay=document.getElementById('wzOverlay');
 const wzAv=document.getElementById('wzAv');
@@ -14,6 +13,99 @@ const viabResult=document.getElementById('viabResult');
 const viabBox=document.getElementById('viabBox');
 const viabEnd=document.getElementById('viabEnd');
 let step=1,step1ok=false,curLead=null,coberturaStatus=null,assinado=false,contratoEnviado=false;
+
+/* ============================================================
+ * Etapas dinâmicas (Configurações > Motor do Funil)
+ * ------------------------------------------------------------
+ * O assistente não possui nenhuma etapa fixa. A barra de etapas, a
+ * quantidade, a ordem, os nomes, a etapa atual e os campos exibidos
+ * são construídos a cada abertura a partir das etapas cadastradas
+ * para o funil da Lead.
+ *
+ * Os componentes de tela originais (viabilidade, cadastro, plano,
+ * assinatura, conclusão) não foram reescritos: ficam guardados em um
+ * "pool" oculto e são movidos para a etapa que os declarar em
+ * "Campos Obrigatórios" — preservando IDs, eventos, CSS e layout.
+ * ============================================================ */
+const wzBodyEl=document.querySelector('.wz-body');
+const wzStepsBar=document.querySelector('.wz-steps');
+const wzDyn=document.createElement('div');
+const wzPool=document.createElement('div');
+wzPool.id='wzPool';wzPool.style.display='none';
+const wzFg=id=>()=>document.getElementById(id).closest('.fg');
+const wzOb=r=>()=>document.querySelector('[data-radio="'+r+'"]').closest('.opt-block');
+const wzRz=id=>()=>document.getElementById(id).closest('.resumo');
+/* g = bloco de origem (mantém o CSS de compactação já existente por etapa);
+ * l = layout dentro do bloco; c = campos que fazem o componente aparecer. */
+const WZ_COMPS=[
+{g:1,l:'viab',c:['CEP'],s:[wzFg('viabCep')]},
+{g:1,l:'viab',c:['Cidade'],s:[wzFg('viabCidade')]},
+{g:1,l:'viab',c:['Bairro'],s:[wzFg('viabBairro')]},
+{g:1,l:'viab',c:['Logradouro'],s:[wzFg('viabLogradouro')]},
+{g:1,l:'viab',c:['Número'],s:[wzFg('viabNum')]},
+{g:1,l:'viab',c:['Complemento'],s:[wzFg('viabCompl')]},
+{g:1,l:'viab',c:['Consulta de cobertura'],s:['#btnViab']},
+{g:1,l:'block',c:['Consulta de cobertura'],s:['#viabResult']},
+{g:2,l:'block',c:['CPF','CNPJ'],s:['[data-radio="tipoCadastro"]']},
+{g:2,l:'grid',c:['Nome'],s:[wzFg('cadNome')]},
+{g:2,l:'grid',c:['CPF','CNPJ'],s:[wzFg('cadCpf')]},
+{g:2,l:'grid',c:['Telefone','Whatsapp'],s:[wzFg('cadTel1')]},
+{g:2,l:'grid',c:['E-mail'],s:[wzFg('cadEmail')]},
+{g:2,l:'block',c:['CPF','CNPJ'],s:['#consultaMsg','#btnAbrirCadastro']},
+{g:2,l:'block',c:['Nome social','Nome fantasia','Data de nascimento','Data de fundação','Telefone secundário','Telefone comercial','Pai','Mãe','Inscrição municipal','Inscrição estadual'],s:['#btnMaisInfo','#maisInfoBlock']},
+{g:2,l:'block',c:['Endereço'],s:['#btnEndereco','#enderecoBlock']},
+{g:3,l:'block',c:['Plano'],s:['[data-radio="categoria"]','#planoBlock']},
+{g:3,l:'block',c:['Contrato'],s:[wzOb('contrato')]},
+{g:3,l:'block',c:['Forma de envio'],s:[wzOb('envio'),'#btnEnviarContrato','#envioMsg']},
+{g:4,l:'block',c:['Assinatura'],s:['#assinBox',()=>document.getElementById('btnReenviar').closest('.end-actions'),()=>document.querySelector('.wstep[data-step="4"] p')]},
+{g:5,l:'block',c:['Conclusão'],s:['.final-head',wzRz('resumoList'),wzRz('checklistList')]}
+];
+WZ_COMPS.forEach(c=>{c.nos=c.s.map(s=>typeof s==='function'?s():document.querySelector(s)).filter(Boolean);});
+WZ_COMPS.forEach(c=>c.nos.forEach(n=>wzPool.appendChild(n)));
+wzBodyEl.querySelectorAll('.wstep').forEach(w=>w.remove());
+wzBodyEl.appendChild(wzDyn);wzBodyEl.appendChild(wzPool);
+
+let wzTotal=1;
+function wzEtapas(){return window.FunnelRuntime?FunnelRuntime.etapasDaLead(curLead):[]}
+/* Redesenha a barra de etapas e o corpo do assistente para o funil atual. */
+function wzMontarEtapas(){
+const etapas=wzEtapas();
+wzStepsBar.innerHTML=etapas.map((e,i)=>'<div class="fstep" id="wzs'+(i+1)+'"><span class="bub">'+(i+1)+'</span><div class="fl"><b>'+esc(e.nome)+'</b></div></div>'+(i<etapas.length-1?'<div class="fline" id="wzl'+(i+1)+'"></div>':'')).join('');
+WZ_COMPS.forEach(c=>c.nos.forEach(n=>wzPool.appendChild(n)));
+wzDyn.innerHTML='';
+const usados=[];
+etapas.forEach((e,i)=>{
+const campos=(e.camposAvanco||[]);
+const comps=WZ_COMPS.filter(c=>usados.indexOf(c)===-1&&c.c.some(x=>campos.indexOf(x)>-1));
+comps.forEach(c=>usados.push(c));
+const box=document.createElement('div');
+box.className='wzstep';box.dataset.idx=i+1;
+box.insertAdjacentHTML('beforeend','<div class="wz-title">'+esc(e.nome)+'</div>'+(e.descricao?'<div class="wz-sub">'+esc(e.descricao)+'</div>':''));
+if(!comps.length)box.insertAdjacentHTML('beforeend','<div class="pa-empty">Nenhum campo configurado para esta etapa.</div>');
+let bloco=null,bg=null,wrap=null,wl=null;
+comps.forEach(c=>{
+if(!bloco||bg!==c.g){bloco=document.createElement('div');bloco.className='wstep on';bloco.dataset.step=c.g;bg=c.g;wrap=null;wl=null;box.appendChild(bloco);}
+if(c.l==='viab'||c.l==='grid'){
+if(!wrap||wl!==c.l){wrap=document.createElement('div');wrap.className=c.l==='viab'?'viab-tools':'fgrid2';wl=c.l;bloco.appendChild(wrap);}
+c.nos.forEach(n=>wrap.appendChild(n));
+}else{wrap=null;wl=null;c.nos.forEach(n=>bloco.appendChild(n));}
+});
+wzDyn.appendChild(box);
+});
+wzTotal=etapas.length||1;
+return wzTotal;
+}
+/* Regras internas de cada componente (cobertura consultada, contrato
+ * enviado, contrato assinado) valem apenas na etapa em que o componente
+ * foi configurado — e não em uma posição fixa. */
+function wzNaEtapa(el){const b=wzDyn.querySelector('.wzstep[data-idx="'+step+'"]');return !!(b&&el&&b.contains(el))}
+function wzEtapaLiberada(){
+if(wzNaEtapa(document.getElementById('btnViab'))&&!step1ok)return false;
+if(wzNaEtapa(document.getElementById('btnEnviarContrato'))&&!contratoEnviado)return false;
+if(wzNaEtapa(document.getElementById('assinBox'))&&!assinado)return false;
+return true;
+}
+function wzAtualizarNext(){wzNext.disabled=(step===wzTotal)?false:!wzEtapaLiberada()}
 
 document.querySelectorAll('.radio-group').forEach(group=>{
 group.querySelectorAll('.radio-opt').forEach(opt=>{
@@ -93,7 +185,7 @@ viabBox.innerHTML='<div class="result-box '+cls+'"><span class="ri"><svg viewBox
 viabEnd.style.display=sel==='ok'?'none':'flex';
 document.getElementById('btnAgendar').style.display=sel==='amp'?'inline-flex':'none';
 step1ok=ok;
-if(step===1){wzNext.disabled=!ok;}
+wzAtualizarNext();
 updateSidebar();
 }
 function renderCoberturaExtra(){
@@ -148,7 +240,7 @@ envioMsg.style.display='flex';
 const envioSel=document.querySelector('[data-radio="envio"] .radio-opt.sel').dataset.val;
 document.getElementById('assinTitle').textContent='Aguardando assinatura';
 document.getElementById('assinUltimo').textContent='Enviado agora por '+canalLabel(envioSel);
-if(step===3)wzNext.disabled=false;
+wzAtualizarNext();
 updateSidebar();
 });
 
@@ -166,13 +258,13 @@ const dd=String(now.getDate()).padStart(2,'0'),mm=String(now.getMonth()+1).padSt
 const envioSelA=document.querySelector('[data-radio="envio"] .radio-opt.sel');
 const canal=envioSelA?canalLabel(envioSelA.dataset.val):'WhatsApp';
 document.getElementById('assinUltimo').textContent='Assinado em '+dd+'/'+mm+'/'+now.getFullYear()+' · '+hh+':'+mi+' · via '+canal;
-if(step===4)wzNext.disabled=false;
+wzAtualizarNext();
 }else{
 assinBox.style.background='#f1f4f8';
 assinIco.style.background='#e2e7ee';assinIco.style.color='#68758a';
 assinIco.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>';
 document.getElementById('assinTitle').textContent='Aguardando assinatura';
-if(step===4)wzNext.disabled=true;
+wzAtualizarNext();
 }
 updateSidebar();
 }
@@ -251,7 +343,7 @@ renderVenda();
 closeWizard();
 });
 document.getElementById('wzSave').addEventListener('click',()=>{
-if(curLead)curLead.fstage=step;
+if(curLead)curLead.fstage=step-1;
 closeWizard();
 });
 function runChecklist(cb){
@@ -268,38 +360,39 @@ setTimeout(next,320);
 /* ===== Navegação do wizard ===== */
 function showStep(n){
 step=n;
-document.querySelectorAll('.wstep').forEach(s=>s.classList.toggle('on',parseInt(s.dataset.step)===n));
-for(let i=1;i<=5;i++){
+wzDyn.querySelectorAll('.wzstep').forEach(s=>s.classList.toggle('on',parseInt(s.dataset.idx)===n));
+for(let i=1;i<=wzTotal;i++){
 const fs=document.getElementById('wzs'+i);
+if(!fs)continue;
 fs.classList.remove('active','done');
 if(i<n)fs.classList.add('done');else if(i===n)fs.classList.add('active');
-if(i<5)document.getElementById('wzl'+i).classList.toggle('on',i<n);
+const ln=document.getElementById('wzl'+i);
+if(ln)ln.classList.toggle('on',i<n);
 }
 wzBack.style.visibility=n===1?'hidden':'visible';
-document.getElementById('wzLoss').style.visibility=n===5?'hidden':'visible';
-if(n===5){wzNext.textContent='Concluir Venda';wzNext.disabled=false;}
-else if(n===1){wzNext.textContent='Continuar';wzNext.disabled=!step1ok;}
-else if(n===3){wzNext.textContent='Continuar';wzNext.disabled=!contratoEnviado;}
-else if(n===4){wzNext.textContent='Continuar';wzNext.disabled=!assinado;}
-else{wzNext.textContent='Continuar';wzNext.disabled=false;}
+document.getElementById('wzLoss').style.visibility=n===wzTotal?'hidden':'visible';
+wzNext.textContent=n===wzTotal?'Concluir Venda':'Continuar';
+wzAtualizarNext();
 document.querySelector('.wz-body').scrollTop=0;
-if(n===5)buildResumo();
+if(n===wzTotal)buildResumo();
+/* Ações Automáticas da etapa: executadas sozinhas ao entrar nela. */
+if(curLead&&window.FunnelRuntime)FunnelRuntime.executarAcoes(wzCurEtapa(),curLead,'entrada');
 updateSidebar();
 renderWzProxAcao();
 }
 wzNext.addEventListener('click',()=>{
-if(step===5){
+if(step===wzTotal){
 wzNext.disabled=true;
+if(curLead&&window.FunnelRuntime)FunnelRuntime.executarAcoes(wzCurEtapa(),curLead,'conclusao');
 runChecklist(()=>{
-if(curLead){curLead.fstage=5;curLead.stat=['Convertido','b-won'];renderVenda();}
+if(curLead){curLead.fstage=wzTotal-1;curLead.stat=['Convertido','b-won'];renderVenda();}
 closeWizard();
 });
 return;
 }
-if(step===1&&!step1ok)return;
-if(step===3&&!contratoEnviado)return;
-if(step===4&&!assinado)return;
+if(!wzEtapaLiberada())return;
 if(!wzChecarAvanco())return;
+if(curLead&&window.FunnelRuntime)FunnelRuntime.executarAcoes(wzCurEtapa(),curLead,'conclusao');
 if(curLead)curLead.fstage=step;
 showStep(step+1);
 });
@@ -324,75 +417,47 @@ if(pa)pa.textContent=proxAcaoWizardTexto();
 }
 const WZ_PA_ICO={'Ligação':'📞','WhatsApp':'💬','E-mail':'📧','Tarefa':'📝','Visita':'📍','Outro':'📌'};
 function proxAcaoWizardTexto(){
-const e=wzCurEtapa();
-if(e&&e.proximasAcoes&&e.proximasAcoes.length){
-const pa=e.proximasAcoes[0];
-const modelo=(typeof PROX_ACOES!=='undefined')?PROX_ACOES.find(p=>p.nome===pa.acao):null;
+const RT=window.FunnelRuntime;
+const pa=RT?RT.proximaAcao(wzCurEtapa()):null;
+if(!pa)return 'Nenhuma ação pendente.';
+const modelo=RT.modeloProxAcao(pa.acao);
 const tipo=modelo?modelo.tipo:'Outro';
-return (WZ_PA_ICO[tipo]||'📌')+' '+pa.acao+' — prazo: '+pa.prazo;
-}
-if(step===1)return coberturaStatus?'📞 Ligar para o cliente às 18:00':'📍 Consultar cobertura no endereço do cliente';
-if(step===2)return '📞 Ligar para o cliente às 18:00';
-if(step===3)return contratoEnviado?'⌛ Aguardar assinatura do contrato':'📄 Enviar contrato';
-if(step===4)return assinado?'📅 Agendar instalação':'⌛ Aguardar assinatura do contrato';
-if(step===5)return 'Nenhuma ação pendente.';
-return 'Nenhuma ação pendente.';
+return (WZ_PA_ICO[tipo]||'📌')+' '+pa.acao+' — prazo: '+(pa.prazo||(modelo?modelo.prazo:'')||'—');
 }
 
 /* ===== Card "🎯 O que fazer agora" =====
  * Todo o conteúdo vem de Configurações > Motor do Funil > Próximas Ações
  * (etapa.proximasAcoes + Biblioteca PROX_ACOES). Nada é fixo no código:
- * qualquer alteração feita pelo administrador reflete aqui automaticamente. */
-const WZ_PA_BTN={'Ligação':'Ligar para Cliente','WhatsApp':'Enviar WhatsApp','E-mail':'Enviar E-mail','Tarefa':'Registrar Tarefa','Visita':'Agendar Visita','Outro':'Executar Ação'};
-let wzPaFeitas=[],wzPaAdiadas=[];
-function wzEtapasAtivas(){
-const funis=(typeof FUNIS!=='undefined')?FUNIS:[];
-const f=funis[(typeof vFunilSelIdx!=='undefined')?vFunilSelIdx:0];
-return f?f.etapas.filter(e=>e.ativa==='Sim'):[];
-}
-/* Próxima ação pendente: começa pela etapa atual e, quando todas as ações
- * dela já foram executadas, segue para as etapas seguintes do funil. */
-function wzPaPendente(){
-const ativas=wzEtapasAtivas();
-const atual=ativas[step-1];
-if(!atual||!(atual.proximasAcoes||[]).length)return null;
-const cands=[];
-for(let i=step-1;i<ativas.length;i++){
-const e=ativas[i];
-(e.proximasAcoes||[]).forEach(pa=>{const key=e.nome+'||'+pa.acao;if(wzPaFeitas.indexOf(key)===-1)cands.push({etapa:e,pa:pa,key:key});});
-}
-return cands.find(c=>wzPaAdiadas.indexOf(c.key)===-1)||cands[0]||null;
-}
+ * qualquer alteração feita pelo administrador reflete aqui automaticamente.
+ * O card é apenas um direcionamento: não exige nenhum check do vendedor e
+ * acompanha automaticamente a etapa atual. A barra de progresso usa
+ * Etapa Atual / Total de Etapas do funil, sem valores fixos. */
 function renderWzProxAcao(){
 const card=document.getElementById('wzProxAcaoCard');
 if(!card)return;
-const total=WZ_DEFAULT_LABELS.length;
-const pct=Math.round(step/total*100);
-const pend=wzPaPendente();
+const RT=window.FunnelRuntime;
+const e=wzCurEtapa();
+const pa=RT?RT.proximaAcao(e):null;
+const pct=Math.round(step/wzTotal*100);
 let body='<div class="card-head"><h3>🎯 O que fazer agora</h3></div>';
-if(!pend){
+if(!pa){
 body+='<div class="pa-empty">Nenhuma próxima ação configurada para esta etapa.</div>';
 }else{
-const modelo=(typeof PROX_ACOES!=='undefined')?PROX_ACOES.find(p=>p.nome===pend.pa.acao):null;
+const modelo=RT.modeloProxAcao(pa.acao);
 const tipo=modelo?modelo.tipo:'Outro';
-const prazo=pend.pa.prazo||(modelo?modelo.prazo:'')||'—';
+const prazo=pa.prazo||(modelo?modelo.prazo:'')||'—';
 const prio=modelo?modelo.prioridade:'—';
-const desc=modelo&&modelo.descricao?modelo.descricao:'';
 body+='<div class="pa-item"><div class="pa-ico">'+(WZ_PA_ICO[tipo]||'📌')+'</div><div>'+
-'<div class="pa-title">'+esc(pend.pa.acao)+'</div>'+
+'<div class="pa-title">'+esc(pa.acao)+'</div>'+
 '<div class="pa-when">Prazo: '+esc(prazo)+' · Prioridade: '+esc(prio)+'</div>'+
-(desc?'<div class="pa-motivo">'+esc(desc)+'</div>':'')+
-'</div></div>'+
-'<div class="pa-foot"><button class="btn-primary btn-sm" id="wzPaExec">'+esc(WZ_PA_BTN[tipo]||WZ_PA_BTN['Outro'])+'</button>'+
-/* Adiar só é oferecido quando a prioridade configurada permite. */
-(prio!=='Crítica'?'<button class="btn-ghost btn-sm" id="wzPaAdiar">Adiar</button>':'')+'</div>';
+'</div></div>';
 }
-body+='<div style="padding:0 18px 16px"><div class="chk-prog"><div class="bar"><i style="width:'+pct+'%"></i></div><b>Etapa '+step+' de '+total+'</b></div></div>';
+/* Ações Automáticas configuradas para a etapa — executadas sem
+ * nenhuma ação manual do vendedor. */
+const auto=RT?RT.acoes(e):[];
+if(auto.length)body+='<div class="pa-when" style="flex:1 1 200px">⚙ Automático: '+esc(auto.join(' · '))+'</div>';
+body+='<div class="chk-prog" style="flex:1 1 170px"><div class="bar"><i style="width:'+pct+'%"></i></div><b>Etapa '+step+' de '+wzTotal+'</b></div>';
 card.innerHTML=body;
-const bx=document.getElementById('wzPaExec');
-if(bx)bx.addEventListener('click',()=>{wzPaFeitas.push(pend.key);renderWzProxAcao();});
-const ba=document.getElementById('wzPaAdiar');
-if(ba)ba.addEventListener('click',()=>{if(wzPaAdiadas.indexOf(pend.key)===-1)wzPaAdiadas.push(pend.key);renderWzProxAcao();});
 }
 
 function initials(n){const p=n.trim().split(/\s+/).filter(Boolean);return((p[0]?p[0][0]:'')+(p[1]?p[1][0]:'')).toUpperCase()||'--'}
@@ -432,57 +497,23 @@ viabResult.style.display='none';step1ok=false;coberturaStatus=null;
 assinado=false;contratoEnviado=false;
 envioMsg.style.display='none';
 document.getElementById('assinUltimo').textContent='Nenhum envio realizado ainda';
-wzPaFeitas=[];wzPaAdiadas=[];
-applyWzStepLabels();
-showStep(1);
+/* A Lead passa a pertencer ao funil em que foi trabalhada. */
+if(window.FunnelRuntime){const fl=FunnelRuntime.funilDaLead(l);if(fl)l.funil=fl.nome;}
+wzMontarEtapas();
+showStep(Math.min(wzTotal,(l.fstage||0)+1));
 renderAssinatura();
 wzOverlay.classList.add('open');
 }
-/* Etapas do modal (Configurações > Funis de Venda > Etapas > Configuração
- * das etapas): os títulos exibidos no stepper do Assistente de Venda
- * passam a refletir as etapas ativas do funil selecionado em Fluxo da
- * Venda (vFunilSelIdx), na ordem cadastrada. Sem etapas ativas suficientes,
- * mantém o rótulo padrão da etapa correspondente (comportamento original). */
-const WZ_DEFAULT_LABELS=['Consultar Cobertura','Dados do Cliente','Plano e Contrato','Assinatura','Concluir Venda'];
-function wzEtapaLabels(){
-const funis=(typeof FUNIS!=='undefined')?FUNIS:[];
-const idx=(typeof vFunilSelIdx!=='undefined')?vFunilSelIdx:0;
-const f=funis[idx];
-if(!f)return WZ_DEFAULT_LABELS;
-const ativas=f.etapas.filter(e=>e.ativa==='Sim');
-return WZ_DEFAULT_LABELS.map((def,i)=>ativas[i]?ativas[i].nome:def);
-}
-function applyWzStepLabels(){
-const labels=wzEtapaLabels();
-for(let i=1;i<=5;i++){
-const el=document.querySelector('#wzs'+i+' .fl b');
-if(el)el.textContent=labels[i-1];
-}
-}
 /* Etapa do funil (Configurações > Funis de Venda > Motor do Funil) que
  * corresponde à etapa atual do wizard, usada para checar Campos
- * obrigatórios, Validações, Fluxo e Próximas Ações dinamicamente. */
-function wzCurEtapa(){
-const funis=(typeof FUNIS!=='undefined')?FUNIS:[];
-const f=funis[(typeof vFunilSelIdx!=='undefined')?vFunilSelIdx:0];
-if(!f)return null;
-const ativas=f.etapas.filter(e=>e.ativa==='Sim');
-return ativas[step-1]||null;
-}
-const WZ_CAMPO_CHECK={'Nome':()=>!!document.getElementById('cadNome').value.trim(),'CPF':()=>!!document.getElementById('cadCpf').value.trim(),'CNPJ':()=>!!document.getElementById('cadCpf').value.trim(),'Whatsapp':()=>!!document.getElementById('cadTel1').value.trim(),'E-mail':()=>!!document.getElementById('cadEmail').value.trim(),'Endereço':()=>!!document.getElementById('cadLogradouro').value.trim(),'Plano':()=>!!planoSelect.value,'Contrato':()=>!!document.querySelector('[data-radio="contrato"] .radio-opt.sel'),'Forma de envio':()=>!!document.querySelector('[data-radio="envio"] .radio-opt.sel'),'Assinatura':()=>assinado};
+ * obrigatórios, Validações, Fluxo, Ações Automáticas e Próximas Ações. */
+function wzCurEtapa(){return wzEtapas()[step-1]||null}
+const WZ_CAMPO_CHECK={'Nome':()=>!!document.getElementById('cadNome').value.trim(),'CPF':()=>!!document.getElementById('cadCpf').value.trim(),'CNPJ':()=>!!document.getElementById('cadCpf').value.trim(),'Telefone':()=>!!document.getElementById('cadTel1').value.trim(),'Whatsapp':()=>!!document.getElementById('cadTel1').value.trim(),'CEP':()=>!!document.getElementById('viabCep').value.trim(),'Cidade':()=>!!document.getElementById('viabCidade').value.trim(),'Bairro':()=>!!document.getElementById('viabBairro').value.trim(),'Logradouro':()=>!!document.getElementById('viabLogradouro').value.trim(),'Número':()=>!!document.getElementById('viabNum').value.trim(),'Consulta de cobertura':()=>!!coberturaStatus,'E-mail':()=>!!document.getElementById('cadEmail').value.trim(),'Endereço':()=>!!document.getElementById('cadLogradouro').value.trim(),'Plano':()=>!!planoSelect.value,'Contrato':()=>!!document.querySelector('[data-radio="contrato"] .radio-opt.sel'),'Forma de envio':()=>!!document.querySelector('[data-radio="envio"] .radio-opt.sel'),'Assinatura':()=>assinado};
 const WZ_VALID_CHECK={'Nome obrigatório':()=>!!document.getElementById('cadNome').value.trim(),'CPF obrigatório':()=>!!document.getElementById('cadCpf').value.trim(),'Telefone principal obrigatório':()=>!!document.getElementById('cadTel1').value.trim(),'E-mail obrigatório':()=>!!document.getElementById('cadEmail').value.trim(),'Endereço obrigatório':()=>!!document.getElementById('cadLogradouro').value.trim(),'Plano selecionado':()=>!!planoSelect.value,'Contrato selecionado':()=>!!document.querySelector('[data-radio="contrato"] .radio-opt.sel'),'Viabilidade obrigatória':()=>!!coberturaStatus,'Cobertura aprovada':()=>coberturaStatus==='ok'||coberturaStatus==='amp','Contrato enviado':()=>contratoEnviado,'Contrato assinado':()=>assinado};
-function wzPendencias(e,map,campo){return e&&e[campo]?e[campo].filter(k=>map[k]&&!map[k]()):[];}
+function wzPendencias(e,map,campo){return window.FunnelRuntime?FunnelRuntime.pendencias(e&&e[campo],map):[];}
 /* Fluxo (Configurações > Funis de Venda > Motor do Funil > Fluxo): só
  * permite avançar se a próxima etapa ativa constar em avancarPara. */
-function wzFluxoPermite(e){
-if(!e||!e.avancarPara)return true;
-const funis=(typeof FUNIS!=='undefined')?FUNIS:[];
-const f=funis[(typeof vFunilSelIdx!=='undefined')?vFunilSelIdx:0];
-if(!f)return true;
-const ativas=f.etapas.filter(x=>x.ativa==='Sim');
-const next=ativas[step];
-return next?e.avancarPara.includes(next.nome):true;
-}
+function wzFluxoPermite(e){return window.FunnelRuntime?FunnelRuntime.fluxoPermite(e,wzEtapas()[step]):true}
 /* Checagem executada ao clicar "Continuar"/"Prosseguir" dentro do wizard,
  * antes das regras internas de cada etapa (comportamento original
  * preservado). Reflete Campos obrigatórios, Validações e Fluxo
