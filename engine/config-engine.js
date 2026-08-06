@@ -271,14 +271,15 @@ cfgOverlay.classList.add('open');
 }
 function formVal(k){const rg=cfgForm.querySelector('.radio-group[data-k="'+k+'"] .radio-opt.sel');if(rg)return rg.dataset.val;const sel=cfgForm.querySelector('select[data-k="'+k+'"]');if(sel)return sel.value;const inp=cfgForm.querySelector('input[data-k="'+k+'"]');return inp?inp.value:''}
 function updateConditionals(){const c=CFG[cfgEditKey];if(!c)return;c.cols.forEach(col=>{if(col.showIf){const w=cfgForm.querySelector('[data-field="'+cK(col)+'"]');if(w)w.style.display=(formVal(col.showIf.key)===col.showIf.eq)?'':'none';}});}
+function areaReqKeys(cv){const ks=['uf','cidade'];const k=AREA_MAP[cv];if(k&&!ks.includes(k))ks.push(k);return ks}
 function updateAreaRequired(){
 cfgForm.querySelectorAll('.fg').forEach(fg=>{fg.classList.remove('req-on');const st=fg.querySelector('.req-star');if(st)st.remove();});
 cfgForm.querySelectorAll('input[data-k]').forEach(i=>i.classList.remove('err'));
 const cv=formVal('considerar');
-if(!cv)return;
-const k=AREA_MAP[cv];
+areaReqKeys(cv).forEach(k=>{
 const inp=cfgForm.querySelector('input[data-k="'+k+'"]');
 if(inp){const fg=inp.closest('.fg');fg.classList.add('req-on');const lb=fg.querySelector('label');if(lb&&!lb.querySelector('.req-star'))lb.insertAdjacentHTML('beforeend',' <span class="req-star">*</span>');}
+});
 }
 function closeCfg(){cfgOverlay.classList.remove('open')}
 document.getElementById('cfgSave').addEventListener('click',()=>{
@@ -288,9 +289,9 @@ const rec={};
 if(cfgEditKey==='area'){
 const cv=formVal('considerar');
 if(!cv){alert('Selecione o critério em "Considerar".');return;}
-const rk=AREA_MAP[cv];
-const inp=cfgForm.querySelector('input[data-k="'+rk+'"]');
-if(inp&&!inp.value.trim()){inp.classList.add('err');inp.focus();return;}
+let bad=null;
+areaReqKeys(cv).forEach(rk=>{const inp=cfgForm.querySelector('input[data-k="'+rk+'"]');if(inp&&!inp.value.trim()){inp.classList.add('err');if(!bad)bad=inp;}});
+if(bad){bad.focus();return;}
 }
 c.cols.forEach(col=>{
 const k=cK(col),type=cT(col);
