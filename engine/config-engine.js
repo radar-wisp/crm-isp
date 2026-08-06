@@ -61,11 +61,12 @@ modelo:{title:'Modelos',cols:[
 grupo:{title:'Grupo de planos',cols:[
 {key:'grupo',label:'Grupo',type:'text'},
 {key:'planos',label:'Planos',type:'checkdrop',source:'plan',hideInTable:true},
+{key:'modeloContrato',label:'Modelo de contrato',type:'select',optionsFn:()=>((CFG.modelo.perfis||[]).map(p=>p.nome)),hideInTable:true},
 {key:'profile',label:'Profile vinculada',type:'text',hideInTable:true},
 {key:'status',label:'Status',type:'radio',options:['Ativo','Inativo']}],data:[
-{grupo:'Residencial Fibra',planos:['Fibra 300','Fibra 500'],profile:'PROFILE-RES-FIBRA',status:'Ativo'},
-{grupo:'Empresarial',planos:['Fibra 500'],profile:'PROFILE-EMP',status:'Ativo'},
-{grupo:'Combos',planos:['Fibra 300','Radar Play'],profile:'PROFILE-COMBO',status:'Ativo'}]},
+{grupo:'Residencial Fibra',planos:['Fibra 300','Fibra 500'],modeloContrato:'Contrato Residencial Fibra',profile:'PROFILE-RES-FIBRA',status:'Ativo'},
+{grupo:'Empresarial',planos:['Fibra 500'],modeloContrato:'Contrato Empresarial',profile:'PROFILE-EMP',status:'Ativo'},
+{grupo:'Combos',planos:['Fibra 300','Radar Play'],modeloContrato:'Contrato Residencial Fibra',profile:'PROFILE-COMBO',status:'Ativo'}]},
 pagamento:{title:'Formas de pagamento',cols:[
 {key:'tipo',label:'Tipo',type:'radio',options:['Adesão','Mensalidade']},
 {key:'descricao',label:'Descrição',type:'text'},
@@ -151,7 +152,7 @@ variavel:{title:'Variáveis',cols:[
 function cK(c){return Array.isArray(c)?c[0]:c.key}
 function cL(c){return Array.isArray(c)?c[1]:c.label}
 function cT(c){return Array.isArray(c)?'text':(c.type||'text')}
-function cOpts(c){if(c.source){const s=CFG[c.source];if(s.optLabel)return s.data.map(s.optLabel);const kk=cK(s.cols[0]);return s.data.map(r=>r[kk]);}return c.options||[]}
+function cOpts(c){if(c.optionsFn)return c.optionsFn();if(c.source){const s=CFG[c.source];if(s.optLabel)return s.data.map(s.optLabel);const kk=cK(s.cols[0]);return s.data.map(r=>r[kk]);}return c.options||[]}
 function cfgBadge(v){const g=/ativ/i.test(v),r=/inativ|cancel/i.test(v),n=/agend/i.test(v);return '<span class="badge '+(g?'b-won':r?'b-lost':n?'b-new':'b-contact')+'">'+esc(v)+'</span>'}
 function tierRow(r){return '<div class="tier-row"><input class="tier-at" placeholder="Atingimento (ex.: >= 100%)" value="'+escA(r.at||'')+'"><input class="tier-com" placeholder="Comissão" value="'+escA(r.com||'')+'"><button type="button" class="tier-del"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="width:15px;height:15px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>'}
 const editIco='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>';
