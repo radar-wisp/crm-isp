@@ -26,6 +26,7 @@
 .pa-horizontal .pa-edit{padding:0;flex:1 1 300px;flex-wrap:wrap;align-items:center}
 .pa-horizontal .pa-edit .pa-edit-foot{justify-content:flex-start}
 .pa-horizontal .pa-empty{padding:4px 0}
+.pa-horizontal .chk-prog{margin-top:0;padding-top:0;border-top:none}
 @media(max-width:1080px){.pa-horizontal{flex-direction:column;align-items:stretch}.pa-horizontal .pa-hist{border-left:none;border-top:1px solid var(--surface-line);padding:12px 0 0}}
 .block{background:var(--surface);border:1px solid var(--surface-line);border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:18px}
 .block-head{display:flex;align-items:center;gap:11px;padding:16px 20px;border-bottom:1px solid var(--surface-line)}
