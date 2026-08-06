@@ -60,7 +60,7 @@ let modeloTab = 'perfil';
 
 function modeloHeads() {
   if (modeloTab === 'perfil') return ['Nome'];
-  if (modeloTab === 'aceite') return ['Nome', 'Documentos vinculados', 'Configurações'];
+  if (modeloTab === 'aceite') return ['Nome', 'Documentos vinculados'];
   return ['Nome', 'Tipo de contrato', 'Perfil de contrato', 'Aceite eletrônico'];
 }
 
@@ -73,9 +73,7 @@ function modeloRowHtml(r, i) {
       '<td><span class="badge ' + (r.aceiteEletronico ? 'b-won">Sim' : 'b-lost">Não') + '</span></td>';
   } else if (modeloTab === 'aceite') {
     const docs = r.docsVinculados || [];
-    const on = MODELO_ACEITE_OPTS.filter(o => r[o[0]]);
-    cells += '<td>' + (docs.length ? docs.map(d => '<span class="chip-soft">' + esc(d) + '</span>').join(' ') : '—') + '</td>' +
-      '<td>' + (on.length ? on.map(o => '<span class="chip-soft">' + esc(o[1]) + '</span>').join(' ') : '—') + '</td>';
+    cells += '<td>' + (docs.length ? docs.map(d => '<span class="chip-soft">' + esc(d) + '</span>').join(' ') : '—') + '</td>';
   }
   return '<tr>' + cells +
     '<td><div class="cfg-acts"><button class="row-act" data-mdl-edit="' + i + '">' + editIco + '</button>' +
