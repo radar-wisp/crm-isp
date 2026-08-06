@@ -51,9 +51,30 @@ window.FunnelRuntime = (function () {
   function campos(e) { return (e && e.camposAvanco) || []; }
   function validacoes(e) { return (e && e.validacoes) || []; }
   function acoes(e) { return (e && e.acoesAutomaticas) || []; }
-  function proximaAcao(e) { return (e && e.proximasAcoes && e.proximasAcoes[0]) || null; }
+  /* Próximas Ações da etapa. A origem principal é a Biblioteca de
+   * Próximas Ações (Configurações > Motor do Funil > Próximas Ações),
+   * onde o administrador escolhe a Etapa de cada ação. A busca segue
+   * esta ordem, e a primeira que tiver resultado é usada:
+   *   1. ações Ativas da biblioteca vinculadas ao nome desta etapa;
+   *   2. ações gravadas na própria etapa (configuração anterior);
+   *   3. ações Ativas marcadas como "Todas as etapas".            */
+  function biblioteca() { return (typeof PROX_ACOES !== 'undefined') ? PROX_ACOES : []; }
+  function daBiblioteca(filtro) {
+    return biblioteca().filter(function (p) { return p.status !== 'Inativo' && filtro(p); })
+      .map(function (p) {
+        return { acao: p.nome, prazo: p.prazo, responsavel: p.responsavel || 'Vendedor', criarAuto: p.automatica };
+      });
+  }
+  function proximasAcoes(e) {
+    if (!e) return [];
+    var l = daBiblioteca(function (p) { return (p.etapa || '') === e.nome; });
+    if (l.length) return l;
+    if (e.proximasAcoes && e.proximasAcoes.length) return e.proximasAcoes;
+    return daBiblioteca(function (p) { return !(p.etapa || '').trim(); });
+  }
+  function proximaAcao(e) { return proximasAcoes(e)[0] || null; }
   function modeloProxAcao(nome) {
-    var l = (typeof PROX_ACOES !== 'undefined') ? PROX_ACOES : [], i;
+    var l = biblioteca(), i;
     for (i = 0; i < l.length; i++) if (l[i].nome === nome) return l[i];
     return null;
   }
@@ -94,7 +115,7 @@ window.FunnelRuntime = (function () {
     funis: funis, funilSelecionado: funilSelecionado, porNome: porNome, funilDaLead: funilDaLead,
     etapas: etapas, etapasDaLead: etapasDaLead, idxEtapa: idxEtapa,
     campos: campos, validacoes: validacoes, acoes: acoes,
-    proximaAcao: proximaAcao, modeloProxAcao: modeloProxAcao,
+    proximaAcao: proximaAcao, proximasAcoes: proximasAcoes, modeloProxAcao: modeloProxAcao,
     pendencias: pendencias, fluxoPermite: fluxoPermite, executarAcoes: executarAcoes
   };
 })();
