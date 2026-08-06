@@ -144,34 +144,6 @@ return '<div class="card"><div class="card-head"><h3>Campos obrigatórios para a
 '</div></div>';
 }
 
-function proxAcaoChip(etapaIdx,subIdx,pa){
-return '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;border:1.5px solid var(--surface-line);border-radius:10px;padding:9px 12px;background:#fbfcfe">'+
-'<b style="font-size:12.5px;color:var(--body-strong)">'+esc(pa.acao)+'</b>'+
-'<label style="display:flex;align-items:center;gap:6px;font-size:12px;color:#68758a;cursor:pointer"><input type="checkbox" data-pa-auto data-etapa="'+etapaIdx+'" data-sub="'+subIdx+'"'+(pa.criarAuto==='Sim'?' checked':'')+'>Criar automaticamente</label>'+
-'<div class="select sm" style="min-width:120px"><select data-pa-prazo data-etapa="'+etapaIdx+'" data-sub="'+subIdx+'">'+PA_PRAZOS.filter(x=>x!=='Personalizado').concat(PA_PRAZOS.includes(pa.prazo)?[]:[pa.prazo]).map(pz=>'<option value="'+escA(pz)+'"'+(pz===pa.prazo?' selected':'')+'>'+esc(pz)+'</option>').join('')+'</select><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg></div>'+
-'<div class="select sm" style="min-width:120px"><select data-pa-resp data-etapa="'+etapaIdx+'" data-sub="'+subIdx+'">'+PA_RESPONSAVEIS.map(r=>'<option value="'+escA(r)+'"'+(r===pa.responsavel?' selected':'')+'>'+esc(r)+'</option>').join('')+'</select><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg></div>'+
-'<button class="row-act del" data-pa-remove data-etapa="'+etapaIdx+'" data-sub="'+subIdx+'" title="Remover" style="margin-left:auto">'+delIco+'</button>'+
-'</div>';
-}
-function renderProxAcoesEtapaCard(f){
-if(!f)return '';
-const rows=f.etapas.map((e,i)=>{
-const atual=e.proximasAcoes||[];
-const chips=atual.length?atual.map((pa,pi)=>proxAcaoChip(i,pi,pa)).join(''):'<div style="font-size:12.5px;color:#98a4b6">Nenhuma Próxima Ação configurada para esta etapa.</div>';
-const disponiveis=PROX_ACOES.filter(p=>p.status==='Ativo'&&!atual.some(a=>a.acao===p.nome));
-return '<div style="padding:16px 20px'+(i<f.etapas.length-1?';border-bottom:1px solid var(--surface-line)':'')+'">'+
-'<div style="font-size:13.5px;font-weight:700;color:var(--body-strong);margin-bottom:10px">'+esc(e.nome)+'</div>'+
-'<div style="display:flex;flex-direction:column;gap:8px">'+chips+'</div>'+
-'<div style="display:flex;gap:8px;align-items:center;margin-top:10px">'+
-'<div class="select sm" style="min-width:220px;flex:1"><select data-pa-add-select="'+i+'">'+(disponiveis.length?disponiveis.map(p=>'<option value="'+escA(p.nome)+'">'+esc(p.nome)+'</option>').join(''):'<option value="">Nenhuma disponível</option>')+'</select><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg></div>'+
-'<button class="btn-ghost btn-sm" data-pa-add="'+i+'"'+(disponiveis.length?'':' disabled')+'>'+plusIco+'Adicionar</button>'+
-'</div></div>';
-}).join('');
-return '<div class="card" style="margin-top:18px" id="proxAcoesEtapaCard"><div class="card-head"><h3>Próxima Ação sugerida por etapa</h3></div>'+
-'<div style="padding:14px 20px 0;font-size:13px;color:#8a97ab">Selecione quais modelos da Biblioteca de Próximas Ações serão sugeridos ao vendedor ao entrar em cada etapa. Para o vendedor, este recurso é sempre exibido como "Próxima Ação".</div>'+
-'<div>'+rows+'</div></div>';
-}
-
 function proxAcaoLibRow(p,i){
 return '<tr><td><b style="color:var(--body-strong)">'+esc(p.nome)+'</b>'+(p.descricao?'<br><small style="color:#8a97ab;font-size:11.5px">'+esc(p.descricao)+'</small>':'')+'</td><td>'+(p.etapa?'<span class="chip-soft">'+esc(p.etapa)+'</span>':'—')+'</td><td><span class="chip-soft">'+esc(p.tipo)+'</span></td><td>'+esc(p.prazo)+'</td><td>'+esc(p.prioridade)+'</td><td>'+(p.automatica==='Sim'?'<span class="badge b-won">Sim</span>':'<span class="chip-soft">Não</span>')+'</td><td>'+cfgBadge(p.status)+'</td><td><div class="cfg-acts"><button class="row-act" data-paedit="'+i+'" title="Editar">'+editIco+'</button><button class="row-act del" data-padel="'+i+'" title="Excluir">'+delIco+'</button></div></td></tr>';
 }
@@ -250,7 +222,7 @@ const tabEtapas='<div class="card"><div class="card-head"><h3>Configuração das
 
 const tabFluxo=renderFluxoCard(selFunil);
 const tabCampos=renderCamposTab(selFunil);
-const tabAcoes=renderAcoesTab(selFunil)+renderProxAcoesEtapaCard(selFunil);
+const tabAcoes=renderAcoesTab(selFunil);
 const tabProxAcoes=renderProxAcoesTab();
 const tabValidacoes=renderValidacoesTab(selFunil);
 const tabContentMap={funis:tabFunis,etapas:tabEtapas,fluxo:tabFluxo,campos:tabCampos,acoes:tabAcoes,proxacoes:tabProxAcoes,validacoes:tabValidacoes};
@@ -293,19 +265,6 @@ const ves=document.getElementById('validEtapaSelect');if(ves)ves.addEventListene
 panel.querySelectorAll('[data-valid-item]').forEach(ci=>ci.addEventListener('click',e=>{e.preventDefault();ci.classList.toggle('on');}));
 panel.querySelectorAll('#validAcaoRG .radio-opt').forEach(opt=>opt.addEventListener('click',()=>{opt.parentElement.querySelectorAll('.radio-opt').forEach(o=>o.classList.remove('sel'));opt.classList.add('sel');}));
 const svb=document.getElementById('saveValidBtn');if(svb)svb.addEventListener('click',saveValidacoes);
-panel.querySelectorAll('[data-pa-auto]').forEach(cb=>cb.addEventListener('change',()=>{const et=parseInt(cb.dataset.etapa),su=parseInt(cb.dataset.sub);FUNIS[funilSelIdx].etapas[et].proximasAcoes[su].criarAuto=cb.checked?'Sim':'Não';}));
-panel.querySelectorAll('[data-pa-prazo]').forEach(sel=>sel.addEventListener('change',()=>{const et=parseInt(sel.dataset.etapa),su=parseInt(sel.dataset.sub);FUNIS[funilSelIdx].etapas[et].proximasAcoes[su].prazo=sel.value;}));
-panel.querySelectorAll('[data-pa-resp]').forEach(sel=>sel.addEventListener('change',()=>{const et=parseInt(sel.dataset.etapa),su=parseInt(sel.dataset.sub);FUNIS[funilSelIdx].etapas[et].proximasAcoes[su].responsavel=sel.value;}));
-panel.querySelectorAll('[data-pa-remove]').forEach(b=>b.addEventListener('click',()=>{const et=parseInt(b.dataset.etapa),su=parseInt(b.dataset.sub);FUNIS[funilSelIdx].etapas[et].proximasAcoes.splice(su,1);renderFunisPanel();}));
-panel.querySelectorAll('[data-pa-add]').forEach(b=>b.addEventListener('click',()=>{
-const et=parseInt(b.dataset.paAdd);
-const sel=panel.querySelector('[data-pa-add-select="'+et+'"]');
-if(!sel||!sel.value)return;
-const lib=PROX_ACOES.find(p=>p.nome===sel.value);
-if(!lib)return;
-FUNIS[funilSelIdx].etapas[et].proximasAcoes.push({acao:lib.nome,criarAuto:lib.automatica,prazo:lib.prazo,responsavel:'Vendedor'});
-renderFunisPanel();
-}));
 const npa=document.getElementById('newProxAcaoBtn');if(npa)npa.addEventListener('click',()=>openProxAcaoModal(null));
 panel.querySelectorAll('[data-paedit]').forEach(b=>b.addEventListener('click',()=>openProxAcaoModal(parseInt(b.dataset.paedit))));
 panel.querySelectorAll('[data-padel]').forEach(b=>b.addEventListener('click',()=>{const i=parseInt(b.dataset.padel);if(confirm('Excluir esta Próxima Ação da biblioteca?')){PROX_ACOES.splice(i,1);renderFunisPanel();}}));
