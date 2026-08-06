@@ -32,6 +32,10 @@
 .wz-foot .btn-ghost,.wz-foot .btn-primary{height:38px;font-size:12.5px;padding:0 13px;gap:6px}
 .wstep{display:none;animation:fade .32s ease-out}
 .wstep.on{display:block}
+/* Etapas geradas dinamicamente a partir do Motor do Funil — mesmo
+ * comportamento de exibição das etapas anteriores. */
+.wzstep{display:none;animation:fade .32s ease-out}
+.wzstep.on{display:block}
 .wz-title{font-size:16px;font-weight:700;color:var(--body-strong);margin-bottom:4px}
 .wz-sub{font-size:13px;color:#8a97ab;margin-bottom:18px}
 
