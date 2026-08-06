@@ -235,6 +235,7 @@ cfgSaveBtn.innerHTML=cfgSaveDefaultHtml;
 function openCfgEdit(key,idx){
 cfgEditKey=key;cfgEditIdx=idx;const c=CFG[key];
 cfgOverlay.querySelector('.cfgmodal').classList.toggle('cfgmodal-nf',key==='nf');
+cfgOverlay.querySelector('.cfgmodal').classList.toggle('cfgmodal-lg',['area','plan','grupo','pagamento','meta','vend','camp'].includes(key));
 document.getElementById('cfgModalTitle').textContent=(idx==null?'Novo registro':'Editar registro')+' — '+c.title;
 cfgMaxStep=c.cols.reduce((m,col)=>Math.max(m,col.step||1),1);
 cfgStep=1;
