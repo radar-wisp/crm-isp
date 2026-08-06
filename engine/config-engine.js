@@ -9,7 +9,7 @@ vend:{title:'Colaboradores',cols:[
 {key:'nome',label:'Nome',type:'text'},
 {key:'funcao',label:'Função',type:'select',options:['Vendedor','Supervisor','Coordenador','Diretor','Atendente']},
 {key:'limitar',label:'Limitação de planos',type:'select',options:['Sim','Não']},
-{key:'planos',label:'Selecionar grupo de planos',type:'checkdrop',source:'grupo',showIf:{key:'limitar',eq:'Sim'}},
+{key:'planos',label:'Selecionar grupo de planos',type:'checkdrop',source:'grupo',showIf:{key:'limitar',eq:'Sim'},hideInTable:true},
 {key:'status',label:'Status',type:'radio',options:['Ativo','Inativo']}],data:[
 {nome:'Renatha Loiola',funcao:'Vendedor',limitar:'Sim',planos:['Residencial Fibra'],status:'Ativo'},
 {nome:'Ana Lima',funcao:'Supervisor',limitar:'Não',planos:[],status:'Ativo'},
@@ -71,7 +71,7 @@ pagamento:{title:'Formas de pagamento',cols:[
 {key:'descricao',label:'Descrição',type:'text'},
 {key:'parcelas',label:'Parcelas',type:'text'},
 {key:'valor',label:'Valor',type:'text'},
-{key:'cobranca',label:'Tipo',type:'radio',options:['À vista','Parcelado']},
+{key:'cobranca',label:'Tipo',type:'radio',options:['À vista','Parcelado'],hideInTable:true},
 {key:'limitar',label:'Limitação de planos',type:'radio',options:['Sim','Não']},
 {key:'selplanos',label:'Selecionar planos',type:'checkdrop',source:'plan',showIf:{key:'limitar',eq:'Sim'},hideInTable:true},
 {key:'derivacao',label:'Plano de composição de derivação',type:'text',hideInTable:true},
