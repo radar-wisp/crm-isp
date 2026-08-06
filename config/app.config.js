@@ -39,6 +39,10 @@ window.APP_CONFIG = {
     'engine/modelo-engine.js',
     'modules/dashboard.js',
     'engine/funnel-engine.js',
+    /* Runtime do Motor do Funil: precisa vir depois de funnel-engine.js
+     * (usa FUNIS/PROX_ACOES) e antes de persistence.js. É a origem das
+     * etapas/campos/validações usadas pela tela do vendedor. */
+    'engine/funnel-runtime.js',
     /* Persistência (2/2): por último — só aqui CFG, FUNIS, PROX_ACOES e
      * o estado do Dashboard já existem para serem restaurados/salvos. */
     'engine/persistence.js'
