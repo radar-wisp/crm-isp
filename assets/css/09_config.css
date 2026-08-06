@@ -67,7 +67,9 @@
 /* Modais de cadastro (Área de vendas, Planos, Grupo de planos, Formas de pagamento,
  * Metas e comissões, Colaboradores, Campanhas promocionais e Próximas ações) — 800x600 */
 .cfgmodal.cfgmodal-lg{width:800px;height:600px}
-.cfgmodal.cfgmodal-lg .cfg-form{flex:1;min-height:0}
+.cfgmodal.cfgmodal-lg .cfg-form{flex:1;min-height:0;display:grid;grid-template-columns:1fr 1fr;gap:13px 18px;align-content:start}
+.cfgmodal.cfgmodal-lg .cfg-form>[data-field="faixas"],.cfgmodal.cfgmodal-lg .cfg-form>[data-field="selarea"],.cfgmodal.cfgmodal-lg .cfg-form>[data-field="selplanos"],.cfgmodal.cfgmodal-lg .cfg-form>[data-field="planos"]{grid-column:1/-1}
+@media (max-width:900px){.cfgmodal.cfgmodal-lg .cfg-form{grid-template-columns:1fr}}
 
 /* NF — modal ajustado para 800x600, sem barra de rolagem (escopo restrito ao módulo Configurações > NF); tabela segue as mesmas proporções padrão de Colaboradores */
 .cfgmodal.cfgmodal-nf{width:1000px;height:600px}
