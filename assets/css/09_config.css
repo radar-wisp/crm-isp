@@ -64,6 +64,11 @@
 .tier-add{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;color:var(--accent);background:rgba(14,165,183,.08);padding:8px 13px;border-radius:9px}
 .tier-add:hover{background:rgba(14,165,183,.14)}
 
+/* Modais de cadastro (Área de vendas, Planos, Grupo de planos, Formas de pagamento,
+ * Metas e comissões, Colaboradores, Campanhas promocionais e Próximas ações) — 800x600 */
+.cfgmodal.cfgmodal-lg{width:800px;height:600px}
+.cfgmodal.cfgmodal-lg .cfg-form{flex:1;min-height:0}
+
 /* NF — modal ajustado para 800x600, sem barra de rolagem (escopo restrito ao módulo Configurações > NF); tabela segue as mesmas proporções padrão de Colaboradores */
 .cfgmodal.cfgmodal-nf{width:1000px;height:600px}
 .cfgmodal.cfgmodal-nf .cfg-form{padding:8px 20px;overflow:hidden}
