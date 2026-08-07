@@ -23,7 +23,7 @@ const upIco='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-w
 const downIco='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg>';
 
 let FUNIS=[
-{nome:'Funil Residencial',descricao:'Fluxo padrão para vendas de fibra residencial',tipo:'Pessoa Física',status:'Ativo',visualizacao:'Kanban',etapas:[
+{nome:'Funil Residencial',grupo:'Residencial Fibra',tipo:'Pessoa Física',status:'Ativo',visualizacao:'Kanban',etapas:[
 etapa('Novo Lead','#0ea5b7','user-plus','Lead recém-cadastrado no sistema','2 horas','Sim','Sim','Não',['Nome','Telefone'],'Comercial'),
 etapa('Contato','#7c5cf6','phone','Primeiro contato realizado com o lead','1 dia','Sim','Sim','Não',['Nome','Telefone','Endereço'],'Comercial'),
 etapa('Qualificado','#f59e0b','check','Lead qualificado para negociação','2 dias','Sim','Sim','Não',['Nome','CPF','Telefone'],'Qualificação'),
@@ -32,13 +32,13 @@ etapa('Proposta','#3b82f6','file-text','Proposta comercial enviada ao cliente','
 etapa('Contrato','#f97316','file-text','Contrato gerado para assinatura','2 dias','Sim','Sim','Não',['Contrato'],'Contratual'),
 etapa('Assinado','#22c55e','check','Contrato assinado pelo cliente','1 dia','Sim','Sim','Não',['Assinatura'],'Contratual'),
 etapa('Concluído','#16a34a','flag','Venda concluída','—','Sim','Sim','Não',[],'Finalizadora')]},
-{nome:'Funil Empresarial',descricao:'Fluxo para negociações corporativas (PJ)',tipo:'Pessoa Jurídica',status:'Ativo',visualizacao:'Lista',etapas:[
+{nome:'Funil Empresarial',grupo:'Empresarial',tipo:'Pessoa Jurídica',status:'Ativo',visualizacao:'Lista',etapas:[
 etapa('Novo Lead','#0ea5b7','user-plus','Lead corporativo recebido','4 horas','Sim','Sim','Não',['Nome','Telefone'],'Comercial'),
 etapa('Diagnóstico','#7c5cf6','map-pin','Levantamento das necessidades do cliente','2 dias','Sim','Sim','Não',['Endereço'],'Técnica'),
 etapa('Proposta','#3b82f6','file-text','Proposta comercial corporativa','5 dias','Não','Sim','Sim',['Plano'],'Comercial'),
 etapa('Negociação','#f59e0b','phone','Ajustes comerciais e contratuais','5 dias','Não','Sim','Sim',[],'Comercial'),
 etapa('Fechamento','#22c55e','check','Contrato assinado e ativado','2 dias','Sim','Sim','Não',['Contrato','Assinatura'],'Contratual')]},
-{nome:'Funil de Retenção',descricao:'Tratamento de solicitações de cancelamento',tipo:'Retenção',status:'Inativo',visualizacao:'Kanban',etapas:[
+{nome:'Funil de Retenção',grupo:'Combos',tipo:'Retenção',status:'Inativo',visualizacao:'Kanban',etapas:[
 etapa('Solicitação','#ef4444','file-text','Cliente solicitou cancelamento','1 dia','Sim','Sim','Não',['Nome'],'Comercial'),
 etapa('Contato de Retenção','#f59e0b','phone','Contato para entender o motivo','2 dias','Sim','Sim','Não',[],'Comercial'),
 etapa('Oferta','#3b82f6','file-text','Oferta de retenção enviada','2 dias','Não','Sim','Sim',[],'Comercial'),
@@ -76,6 +76,7 @@ const DEFAULT_PROXACOES_MAP={'Novo Lead':[{acao:'Realizar primeiro contato',cria
 
 FUNIS.forEach(f=>{
 f.fluxo=f.fluxo||{permitirRetorno:'Não',acoes:[]};
+f.direcionamentos=f.direcionamentos||[];
 f.etapas.forEach((e,i)=>{
 if(!e.avancarPara){
 const nearEnd=i>=f.etapas.length-2;
@@ -93,7 +94,7 @@ let motorTab='funis';
 let validEtapaIdx=0;
 
 function funRow(f,i){
-return '<tr><td><b style="color:var(--body-strong)">'+esc(f.nome)+'</b><br><small style="color:#8a97ab;font-size:11.5px">'+esc(f.descricao)+'</small></td><td>'+(f.tipo?'<span class="chip-soft">'+esc(f.tipo)+'</span>':'—')+'</td><td>'+f.etapas.length+' etapa(s)</td><td>'+cfgBadge(f.status)+'</td><td><div class="cfg-acts"><button class="row-act" data-funedit="'+i+'" title="Editar">'+editIco+'</button><button class="row-act" data-fundup="'+i+'" title="Duplicar">'+dupIco+'</button><button class="row-act del" data-fundel="'+i+'" title="Excluir">'+delIco+'</button></div></td></tr>';
+return '<tr><td><b style="color:var(--body-strong)">'+esc(f.nome)+'</b><br><small style="color:#8a97ab;font-size:11.5px">'+esc(f.grupo||'')+'</small></td><td>'+(f.tipo?'<span class="chip-soft">'+esc(f.tipo)+'</span>':'—')+'</td><td>'+f.etapas.length+' etapa(s)</td><td>'+cfgBadge(f.status)+'</td><td><div class="cfg-acts"><button class="row-act" data-funedit="'+i+'" title="Editar">'+editIco+'</button><button class="row-act" data-fundup="'+i+'" title="Duplicar">'+dupIco+'</button><button class="row-act del" data-fundel="'+i+'" title="Excluir">'+delIco+'</button></div></td></tr>';
 }
 
 function etapaRow(f,e,i,total){
@@ -199,8 +200,55 @@ const resumoCard='<div class="card" style="width:260px;flex-shrink:0"><div class
 return etapaSelector+'<div style="display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap">'+regrasCard+resumoCard+'</div>';
 }
 
+/* ===== Direcionamento (Estrutura Condicional) ===== */
+const DIREC_TIPOS=['Funis','Etapas','Fluxo','Campos obrigatórios','Próximas ações','Ações automáticas','Validações'];
+function direcOpcoes(tipo,f){
+const etapas=(f&&f.etapas?f.etapas:[]).map(e=>e.nome);
+if(tipo==='Funis')return FUNIS.map(x=>x.nome);
+if(tipo==='Etapas')return etapas;
+if(tipo==='Fluxo')return etapas.concat(['Perdido']);
+if(tipo==='Campos obrigatórios')return MASTER_CAMPOS;
+if(tipo==='Próximas ações')return PROX_ACOES.map(p=>p.nome);
+if(tipo==='Ações automáticas')return AUTO_ACOES;
+if(tipo==='Validações')return VALID_GROUPS.reduce((a,g)=>a.concat(g.items),[]);
+return [];
+}
+function direcSel(campo,i,opts,cur,ph,w){
+return '<div class="select sm" style="min-width:'+w+'px"><select data-direc="'+campo+'" data-i="'+i+'"><option value="">'+esc(ph)+'</option>'+opts.map(o=>'<option value="'+escA(o)+'"'+(o===cur?' selected':'')+'>'+esc(o)+'</option>').join('')+'</select><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg></div>';
+}
+function direcTag(t){return '<span style="font-size:12px;color:#68758a;font-weight:700">'+esc(t)+'</span>'}
+function direcRow(f,r,i,total){
+return '<div style="display:flex;gap:9px;align-items:center;flex-wrap:wrap;padding:14px 20px'+(i<total-1?';border-bottom:1px solid var(--surface-line)':'')+'">'+
+direcTag('SE')+
+direcSel('etapa',i,(f.etapas||[]).map(e=>e.nome),r.etapa,'Etapa',180)+
+direcTag('·')+
+direcSel('condTipo',i,DIREC_TIPOS,r.condTipo,'Condição',180)+
+direcSel('condValor',i,direcOpcoes(r.condTipo,f),r.condValor,'Valor',190)+
+direcTag('DIRECIONAR PARA')+
+direcSel('destTipo',i,DIREC_TIPOS,r.destTipo,'Destino',180)+
+direcSel('destValor',i,direcOpcoes(r.destTipo,f),r.destValor,'Valor',190)+
+'<button class="row-act del" data-direcdel="'+i+'" title="Excluir">'+delIco+'</button>'+
+'</div>';
+}
+function renderDirecionamentoTab(f){
+if(!f)return '<div class="card"><div class="card-head"><h3>Direcionamento</h3></div></div>';
+f.direcionamentos=f.direcionamentos||[];
+const rows=f.direcionamentos.length?f.direcionamentos.map((r,i)=>direcRow(f,r,i,f.direcionamentos.length)).join(''):'<div style="padding:18px 20px;font-size:13px;color:#8a97ab">Nenhuma condição cadastrada.</div>';
+return '<div class="card"><div class="card-head"><h3>Direcionamento</h3><button class="btn-primary" id="newDirecBtn">'+plusIco+'Nova Condição</button></div>'+
+'<div style="padding:14px 20px 4px;font-size:13px;color:#8a97ab">Monte estruturas condicionais ilimitadas para direcionar a venda conforme o que for preenchido em cada etapa.</div>'+
+'<div>'+rows+'</div>'+
+'<div class="cfg-modal-foot" style="justify-content:space-between;align-items:center">'+
+'<span id="direcSavedMsg" style="font-size:12.5px;color:var(--signal);font-weight:600;opacity:0;transition:.25s">Direcionamentos salvos com sucesso!</span>'+
+'<button class="btn-primary" id="saveDirecBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>Salvar Direcionamentos</button>'+
+'</div></div>';
+}
+function saveDirecionamentos(){
+const msg=document.getElementById('direcSavedMsg');
+if(msg){msg.style.opacity='1';setTimeout(()=>{msg.style.opacity='0';},2200);}
+}
+
 function renderMotorTabs(){
-const tabs=[['funis','Funis'],['etapas','Etapas'],['fluxo','Fluxo'],['campos','Campos Obrigatórios'],['proxacoes','Próximas Ações'],['acoes','Ações Automáticas'],['validacoes','Validações']];
+const tabs=[['funis','Funis'],['etapas','Etapas'],['direcionamento','Direcionamento'],['fluxo','Fluxo'],['campos','Campos Obrigatórios'],['proxacoes','Próximas Ações'],['acoes','Ações Automáticas'],['validacoes','Validações']];
 return tabs.map(t=>'<button class="'+(motorTab===t[0]?'on':'')+'" data-tab="'+t[0]+'">'+t[1]+'</button>').join('');
 }
 
@@ -220,12 +268,13 @@ const etapasRows=selFunil?selFunil.etapas.map((e,i)=>etapaRow(selFunil,e,i,selFu
 const tabEtapas='<div class="card"><div class="card-head"><h3>Configuração das etapas</h3><button class="btn-primary" id="newEtapaBtn">'+plusIco+'Nova Etapa</button></div>'+
 '<div class="table-wrap"><table class="cfg-table"><thead><tr><th>Ordem</th><th>Nome da Etapa</th><th>Cor</th><th>SLA</th><th>Obrigatória</th><th>Ativa</th><th></th></tr></thead><tbody>'+etapasRows+'</tbody></table></div></div>';
 
+const tabDirecionamento=renderDirecionamentoTab(selFunil);
 const tabFluxo=renderFluxoCard(selFunil);
 const tabCampos=renderCamposTab(selFunil);
 const tabAcoes=renderAcoesTab(selFunil);
 const tabProxAcoes=renderProxAcoesTab();
 const tabValidacoes=renderValidacoesTab(selFunil);
-const tabContentMap={funis:tabFunis,etapas:tabEtapas,fluxo:tabFluxo,campos:tabCampos,acoes:tabAcoes,proxacoes:tabProxAcoes,validacoes:tabValidacoes};
+const tabContentMap={funis:tabFunis,etapas:tabEtapas,direcionamento:tabDirecionamento,fluxo:tabFluxo,campos:tabCampos,acoes:tabAcoes,proxacoes:tabProxAcoes,validacoes:tabValidacoes};
 
 const motorCard='<div class="card" style="margin-bottom:18px" id="motorFunilCard"><div class="card-head"><h3>Motor do Funil</h3></div>'+
 '<div style="padding:14px 20px 0"><div class="seg" id="motorTabs" style="overflow-x:auto;max-width:100%">'+renderMotorTabs()+'</div></div>'+
@@ -256,6 +305,10 @@ panel.querySelectorAll('[data-etpdel]').forEach(b=>b.addEventListener('click',()
 panel.querySelectorAll('[data-fluxo-origin]').forEach(ci=>ci.addEventListener('click',e=>{e.preventDefault();ci.classList.toggle('on');}));
 panel.querySelectorAll('#fluxoRetornoRG .radio-opt').forEach(opt=>opt.addEventListener('click',()=>{opt.parentElement.querySelectorAll('.radio-opt').forEach(o=>o.classList.remove('sel'));opt.classList.add('sel');}));
 panel.querySelectorAll('[data-fluxo-acao]').forEach(ci=>ci.addEventListener('click',e=>{e.preventDefault();ci.classList.toggle('on');}));
+const ndb=document.getElementById('newDirecBtn');if(ndb)ndb.addEventListener('click',()=>{const f=FUNIS[funilSelIdx];f.direcionamentos=f.direcionamentos||[];f.direcionamentos.push({etapa:'',condTipo:'',condValor:'',destTipo:'',destValor:''});renderFunisPanel();});
+panel.querySelectorAll('[data-direcdel]').forEach(b=>b.addEventListener('click',()=>{FUNIS[funilSelIdx].direcionamentos.splice(parseInt(b.dataset.direcdel),1);renderFunisPanel();}));
+panel.querySelectorAll('select[data-direc]').forEach(sl=>sl.addEventListener('change',()=>{const r=FUNIS[funilSelIdx].direcionamentos[parseInt(sl.dataset.i)];if(!r)return;r[sl.dataset.direc]=sl.value;if(sl.dataset.direc==='condTipo')r.condValor='';if(sl.dataset.direc==='destTipo')r.destValor='';renderFunisPanel();}));
+const sdb=document.getElementById('saveDirecBtn');if(sdb)sdb.addEventListener('click',saveDirecionamentos);
 const sfb=document.getElementById('saveFluxoBtn');if(sfb)sfb.addEventListener('click',saveFluxo);
 panel.querySelectorAll('[data-campos-origin]').forEach(ci=>ci.addEventListener('click',e=>{e.preventDefault();ci.classList.toggle('on');}));
 const scb=document.getElementById('saveCamposBtn');if(scb)scb.addEventListener('click',saveCampos);
@@ -312,10 +365,15 @@ function rgVal(id){const s=document.querySelector('#'+id+' .radio-opt.sel');retu
 document.querySelectorAll('#funStatusRG .radio-opt').forEach(opt=>opt.addEventListener('click',()=>{opt.parentElement.querySelectorAll('.radio-opt').forEach(o=>o.classList.remove('sel'));opt.classList.add('sel');}));
 function openFunilModal(idx){
 funilEditIdx=idx;
-const f=idx!=null?FUNIS[idx]:{nome:'',descricao:'',tipo:'Pessoa Física',status:'Ativo'};
+const f=idx!=null?FUNIS[idx]:{nome:'',grupo:'',tipo:'Pessoa Física',status:'Ativo'};
 document.getElementById('funilModalTitle').textContent=idx==null?'Novo Funil':'Editar Funil';
 document.getElementById('funNome').value=f.nome;
-document.getElementById('funDescricao').value=f.descricao;
+const funGrupoEl=document.getElementById('funGrupo');
+if(funGrupoEl){
+const grupos=((typeof CFG!=='undefined'&&CFG.grupo&&CFG.grupo.data)||[]).map(g=>g.grupo);
+funGrupoEl.innerHTML='<option value="">Selecione o grupo de plano</option>'+grupos.map(n=>'<option value="'+escA(n)+'">'+esc(n)+'</option>').join('');
+funGrupoEl.value=f.grupo||'';
+}
 rgSet('funStatusRG',f.status);
 funilOverlay.classList.add('open');
 }
@@ -327,8 +385,8 @@ document.getElementById('funilSave').addEventListener('click',()=>{
 const nome=document.getElementById('funNome').value.trim();
 if(!nome){document.getElementById('funNome').classList.add('err');return}
 document.getElementById('funNome').classList.remove('err');
-const rec={nome:nome,descricao:document.getElementById('funDescricao').value.trim(),tipo:(funilEditIdx!=null?FUNIS[funilEditIdx].tipo:''),status:rgVal('funStatusRG')};
-if(funilEditIdx==null){rec.etapas=[];FUNIS.push(rec);funilSelIdx=FUNIS.length-1;}
+const rec={nome:nome,grupo:(document.getElementById('funGrupo')||{value:''}).value,tipo:(funilEditIdx!=null?FUNIS[funilEditIdx].tipo:''),status:rgVal('funStatusRG')};
+if(funilEditIdx==null){rec.etapas=[];rec.direcionamentos=[];FUNIS.push(rec);funilSelIdx=FUNIS.length-1;}
 else{Object.assign(FUNIS[funilEditIdx],rec);}
 closeFunilModal();renderFunisPanel();
 });
