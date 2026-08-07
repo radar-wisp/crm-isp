@@ -412,20 +412,10 @@ document.getElementById('sumPlano').textContent=planoSelect.value||'—';
 document.getElementById('sumContrato').textContent=selText('contrato');
 document.getElementById('sumAssinatura').textContent=assinado?'Assinado':(contratoEnviado?'Aguardando assinatura':'—');
 document.getElementById('sumVendedor').textContent=curLead.vend||'—';
-const pa=document.getElementById('wzProxAcaoTxt');
-if(pa)pa.textContent=proxAcaoWizardTexto();
 }
 const WZ_PA_ICO={'Ligação':'📞','WhatsApp':'💬','E-mail':'📧','Tarefa':'📝','Visita':'📍','Outro':'📌'};
-function proxAcaoWizardTexto(){
-const RT=window.FunnelRuntime;
-const pa=RT?RT.proximaAcao(wzCurEtapa()):null;
-if(!pa)return 'Nenhuma ação pendente.';
-const modelo=RT.modeloProxAcao(pa.acao);
-const tipo=modelo?modelo.tipo:'Outro';
-return (WZ_PA_ICO[tipo]||'📌')+' '+pa.acao+' — prazo: '+(pa.prazo||(modelo?modelo.prazo:'')||'—');
-}
 
-/* ===== Card "🎯 O que fazer agora" =====
+/* ===== Card da Próxima Ação =====
  * Todo o conteúdo vem de Configurações > Motor do Funil > Próximas Ações
  * (etapa.proximasAcoes + Biblioteca PROX_ACOES). Nada é fixo no código:
  * qualquer alteração feita pelo administrador reflete aqui automaticamente.
@@ -439,23 +429,19 @@ const RT=window.FunnelRuntime;
 const e=wzCurEtapa();
 const pa=RT?RT.proximaAcao(e):null;
 const pct=Math.round(step/wzTotal*100);
-let body='<div class="card-head"><h3>🎯 O que fazer agora</h3></div>';
+const modelo=pa?RT.modeloProxAcao(pa.acao):null;
+let body='<div class="card-head"><h3>🎯 '+esc(pa?pa.acao:'Próxima ação')+'</h3></div>';
 if(!pa){
 body+='<div class="pa-empty">Nenhuma próxima ação configurada para esta etapa.</div>';
 }else{
-const modelo=RT.modeloProxAcao(pa.acao);
 const tipo=modelo?modelo.tipo:'Outro';
 const prazo=pa.prazo||(modelo?modelo.prazo:'')||'—';
 const prio=modelo?modelo.prioridade:'—';
 body+='<div class="pa-item"><div class="pa-ico">'+(WZ_PA_ICO[tipo]||'📌')+'</div><div>'+
-'<div class="pa-title">'+esc(pa.acao)+'</div>'+
+'<div class="pa-title">'+esc(modelo&&modelo.descricao?modelo.descricao:'—')+'</div>'+
 '<div class="pa-when">Prazo: '+esc(prazo)+' · Prioridade: '+esc(prio)+'</div>'+
 '</div></div>';
 }
-/* Ações Automáticas configuradas para a etapa — executadas sem
- * nenhuma ação manual do vendedor. */
-const auto=RT?RT.acoes(e):[];
-if(auto.length)body+='<div class="pa-when" style="flex:1 1 200px">⚙ Automático: '+esc(auto.join(' · '))+'</div>';
 body+='<div class="chk-prog" style="flex:1 1 170px"><div class="bar"><i style="width:'+pct+'%"></i></div><b>Etapa '+step+' de '+wzTotal+'</b></div>';
 card.innerHTML=body;
 }
