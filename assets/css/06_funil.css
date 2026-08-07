@@ -28,7 +28,7 @@
 .pa-hist .lbl{font-size:11px;font-weight:700;color:#68758a;text-transform:uppercase;letter-spacing:.4px;margin-bottom:10px}
 .pa-hist ul{list-style:none;display:flex;flex-direction:column;gap:9px}
 .pa-hist li{font-size:12.5px;color:var(--body);display:flex;align-items:center;gap:8px}
-.pa-hist li::before{content:"✔";color:var(--signal);font-size:11px;flex-shrink:0}
+.pa-hist li::before{content:"";width:11px;height:11px;background:var(--signal);flex-shrink:0;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'/%3E%3C/svg%3E") center/contain no-repeat}
 .pa-edit{padding:0 18px 16px;display:flex;flex-direction:column;gap:10px}
 .pa-edit input,.pa-edit select{width:100%;height:38px;border:1.5px solid var(--surface-line);border-radius:9px;padding:0 12px;font-size:13px;color:var(--body-strong);background:#fbfcfe}
 .pa-edit .pa-edit-foot{display:flex;gap:8px;justify-content:flex-end}
