@@ -33,24 +33,19 @@ const myLeadCount=document.getElementById('myLeadCount');
 myLeadCount.textContent='0';
 const RT=window.FunnelRuntime;
 if(!RT)return;
-const funil=RT.funilSelecionado();
-/* Perfil do funil: com "Todos os funis" (vFunilSelIdx = -1) as colunas são
- * a união das etapas de todos os funis (mesmo nome = mesma coluna); com um
- * funil escolhido, apenas as etapas dele. */
-const todosFunis=vFunilSelIdx<0;
-const STAGES=[];const vistas={};
-(todosFunis?RT.funis():[funil]).forEach(f=>RT.etapas(f).forEach(e=>{if(!vistas[e.nome]){vistas[e.nome]=1;STAGES.push(e)}}));
-if(!STAGES.length)return;
 /* A etapa inicial só é sorteada para leads que ainda não têm etapa.
  * Leads restaurados do armazenamento (engine/storage.js) já trazem
  * o fstage salvo e devem mantê-lo. */
-const mine=todosFunis?mineAll.slice():mineAll.filter(l=>RT.funilDaLead(l)===funil);
-mine.forEach((l,i)=>{if(l.fstage==null)l.fstage=l.stat[0]==='Novo'?0:1+(i%Math.max(1,STAGES.length-1))});
-/* A coluna da Lead é sempre a etapa do funil dela (pelo nome), o que
- * mantém o Kanban correto também com vários funis na mesma tela. */
+const iniEtapa=(l,i,total)=>{if(l.fstage==null)l.fstage=l.stat[0]==='Novo'?0:1+(i%Math.max(1,total-1))};
 const nomeEtapa=l=>{const e=RT.etapasDaLead(l)[RT.idxEtapa(l)];return e?e.nome:''};
-STAGES.forEach((st,idx)=>{
-const items=mine.filter(l=>nomeEtapa(l)===st.nome);
+/* Kanban: um único funil por vez (seletor "Perfil do funil"), para o
+ * quadro não misturar etapas de funis diferentes. */
+const funil=RT.funilSelecionado();
+const STAGES=RT.etapas(funil);
+const doKanban=mineAll.filter(l=>RT.funilDaLead(l)===funil);
+doKanban.forEach((l,i)=>iniEtapa(l,i,STAGES.length));
+STAGES.forEach(st=>{
+const items=doKanban.filter(l=>nomeEtapa(l)===st.nome);
 const col=document.createElement('div');
 col.className='col';
 col.innerHTML='<div class="col-head"><span class="dt" style="background:'+st.cor+'"></span><h4>'+esc(st.nome)+'</h4><span class="n">'+items.length+'</span></div><div class="col-body"></div>';
@@ -65,11 +60,18 @@ body.appendChild(k);
 });
 vBoard.appendChild(col);
 });
-myLeadCount.textContent=mine.length;
-mine.forEach(l=>{
-const pl=PLAT[l.plat];const st=STAGES.filter(x=>x.nome===nomeEtapa(l))[0]||STAGES[0];
+/* Lista: um ou vários funis ao mesmo tempo (marcadores acima da tabela).
+ * Cada linha mostra o funil da Lead e a etapa dentro do funil dela. */
+const funisLista=funisDaLista();
+const daLista=mineAll.filter(l=>funisLista.indexOf(RT.funilDaLead(l))>-1);
+daLista.forEach((l,i)=>iniEtapa(l,i,RT.etapasDaLead(l).length));
+myLeadCount.textContent=daLista.length;
+daLista.forEach(l=>{
+const pl=PLAT[l.plat];const fl=RT.funilDaLead(l);const es=RT.etapasDaLead(l);const st=es[RT.idxEtapa(l)];
+if(!st)return;
 const tr=document.createElement('tr');
 tr.innerHTML='<td><div class="lead-cli"><div class="av" style="background:linear-gradient(135deg,'+l.grad+')">'+l.ini+'</div><div><b>'+l.name+'</b><small>'+l.phone+'</small></div></div></td>'
++'<td><span class="chip-soft">'+esc(fl?fl.nome:'—')+'</span></td>'
 +'<td>'+l.orig+'</td>'
 +'<td><span class="src"><span class="ic '+pl.c+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'+pl.s+'</svg></span>'+pl.l+'</span></td>'
 +'<td><span class="badge '+l.stat[1]+'">'+l.stat[0]+'</span></td>'
@@ -82,16 +84,42 @@ myLeadRows.appendChild(tr);
 }
 renderVenda();
 
-/* ===== Funil Atual (lista igual a Configurações > Funis > Motor do Funil > Funis) ===== */
+/* ===== Perfil do funil (lista igual a Configurações > Funis > Motor do Funil > Funis) =====
+ * Kanban usa o seletor (um funil por vez); a Lista usa os marcadores
+ * abaixo do título do card (um ou vários funis ao mesmo tempo). */
 let vFunilSelIdx=0;
+let vFunilLista=null;/* null = todos os funis marcados na Lista */
 const vFunilSelect=document.getElementById('vFunilSelect');
+const vFunilWrap=document.getElementById('vFunilWrap');
+const vFunilChecks=document.getElementById('vFunilChecks');
+function funisDaLista(){
+const funis=(typeof FUNIS!=='undefined')?FUNIS:[];
+return vFunilLista===null?funis.slice():funis.filter((f,i)=>vFunilLista.indexOf(i)>-1);
+}
+function populateVendaFunilChecks(){
+if(!vFunilChecks)return;
+const funis=(typeof FUNIS!=='undefined')?FUNIS:[];
+if(!funis.length)return;
+vFunilChecks.innerHTML=funis.map((f,i)=>'<label class="cfg-check-item'+((vFunilLista===null||vFunilLista.indexOf(i)>-1)?' on':'')+'" data-vfunil="'+i+'"><span class="cbox"></span>'+esc(f.nome)+'</label>').join('');
+}
 function populateVendaFunilSelect(){
 if(!vFunilSelect)return;
 const funis=(typeof FUNIS!=='undefined')?FUNIS:[];
 if(!funis.length)return;
-if(vFunilSelIdx>=funis.length)vFunilSelIdx=0;
-vFunilSelect.innerHTML='<option value="-1"'+(vFunilSelIdx<0?' selected':'')+'>Todos os funis</option>'+funis.map((f,i)=>'<option value="'+i+'"'+(i===vFunilSelIdx?' selected':'')+'>'+esc(f.nome)+'</option>').join('');
+if(vFunilSelIdx<0||vFunilSelIdx>=funis.length)vFunilSelIdx=0;
+vFunilSelect.innerHTML=funis.map((f,i)=>'<option value="'+i+'"'+(i===vFunilSelIdx?' selected':'')+'>'+esc(f.nome)+'</option>').join('');
+populateVendaFunilChecks();
 }
+/* Ao menos um funil permanece marcado na Lista. */
+if(vFunilChecks)vFunilChecks.addEventListener('click',ev=>{
+const el=ev.target.closest('[data-vfunil]');if(!el)return;
+const funis=(typeof FUNIS!=='undefined')?FUNIS:[];
+const i=parseInt(el.dataset.vfunil);
+if(vFunilLista===null)vFunilLista=funis.map((f,k)=>k);
+const p=vFunilLista.indexOf(i);
+if(p>-1){if(vFunilLista.length<2)return;vFunilLista.splice(p,1)}else vFunilLista.push(i);
+populateVendaFunilChecks();renderVenda();
+});
 populateVendaFunilSelect();
 if(vFunilSelect)vFunilSelect.addEventListener('change',()=>{vFunilSelIdx=parseInt(vFunilSelect.value);renderVenda();});
 /* Cada funil tem seu próprio Kanban/Lista: ao voltar para a tela, as
@@ -103,6 +131,9 @@ const vTabKanban=document.getElementById('vTabKanban');
 const vTabList=document.getElementById('vTabList');
 const vViewKanban=document.getElementById('vViewKanban');
 const vViewList=document.getElementById('vViewList');
-vTabKanban.addEventListener('click',()=>{vTabKanban.classList.add('on');vTabList.classList.remove('on');vViewKanban.classList.add('on');vViewList.classList.remove('on')});
-vTabList.addEventListener('click',()=>{vTabList.classList.add('on');vTabKanban.classList.remove('on');vViewList.classList.add('on');vViewKanban.classList.remove('on')});
+/* O seletor de funil único pertence ao Kanban: na Lista quem manda são
+ * os marcadores, então ele sai da barra para a tela seguir limpa. */
+function vSyncFiltro(kanban){if(vFunilWrap)vFunilWrap.style.display=kanban?'':'none'}
+vTabKanban.addEventListener('click',()=>{vTabKanban.classList.add('on');vTabList.classList.remove('on');vViewKanban.classList.add('on');vViewList.classList.remove('on');vSyncFiltro(true)});
+vTabList.addEventListener('click',()=>{vTabList.classList.add('on');vTabKanban.classList.remove('on');vViewList.classList.add('on');vViewKanban.classList.remove('on');vSyncFiltro(false)});
 
