@@ -34,15 +34,23 @@ myLeadCount.textContent='0';
 const RT=window.FunnelRuntime;
 if(!RT)return;
 const funil=RT.funilSelecionado();
-const STAGES=RT.etapas(funil);
+/* Perfil do funil: com "Todos os funis" (vFunilSelIdx = -1) as colunas são
+ * a união das etapas de todos os funis (mesmo nome = mesma coluna); com um
+ * funil escolhido, apenas as etapas dele. */
+const todosFunis=vFunilSelIdx<0;
+const STAGES=[];const vistas={};
+(todosFunis?RT.funis():[funil]).forEach(f=>RT.etapas(f).forEach(e=>{if(!vistas[e.nome]){vistas[e.nome]=1;STAGES.push(e)}}));
 if(!STAGES.length)return;
 /* A etapa inicial só é sorteada para leads que ainda não têm etapa.
  * Leads restaurados do armazenamento (engine/storage.js) já trazem
  * o fstage salvo e devem mantê-lo. */
-const mine=mineAll.filter(l=>RT.funilDaLead(l)===funil);
+const mine=todosFunis?mineAll.slice():mineAll.filter(l=>RT.funilDaLead(l)===funil);
 mine.forEach((l,i)=>{if(l.fstage==null)l.fstage=l.stat[0]==='Novo'?0:1+(i%Math.max(1,STAGES.length-1))});
+/* A coluna da Lead é sempre a etapa do funil dela (pelo nome), o que
+ * mantém o Kanban correto também com vários funis na mesma tela. */
+const nomeEtapa=l=>{const e=RT.etapasDaLead(l)[RT.idxEtapa(l)];return e?e.nome:''};
 STAGES.forEach((st,idx)=>{
-const items=mine.filter(l=>RT.idxEtapa(l)===idx);
+const items=mine.filter(l=>nomeEtapa(l)===st.nome);
 const col=document.createElement('div');
 col.className='col';
 col.innerHTML='<div class="col-head"><span class="dt" style="background:'+st.cor+'"></span><h4>'+esc(st.nome)+'</h4><span class="n">'+items.length+'</span></div><div class="col-body"></div>';
@@ -59,7 +67,7 @@ vBoard.appendChild(col);
 });
 myLeadCount.textContent=mine.length;
 mine.forEach(l=>{
-const pl=PLAT[l.plat];const st=STAGES[RT.idxEtapa(l)];
+const pl=PLAT[l.plat];const st=STAGES.filter(x=>x.nome===nomeEtapa(l))[0]||STAGES[0];
 const tr=document.createElement('tr');
 tr.innerHTML='<td><div class="lead-cli"><div class="av" style="background:linear-gradient(135deg,'+l.grad+')">'+l.ini+'</div><div><b>'+l.name+'</b><small>'+l.phone+'</small></div></div></td>'
 +'<td>'+l.orig+'</td>'
@@ -82,7 +90,7 @@ if(!vFunilSelect)return;
 const funis=(typeof FUNIS!=='undefined')?FUNIS:[];
 if(!funis.length)return;
 if(vFunilSelIdx>=funis.length)vFunilSelIdx=0;
-vFunilSelect.innerHTML=funis.map((f,i)=>'<option value="'+i+'"'+(i===vFunilSelIdx?' selected':'')+'>'+esc(f.nome)+'</option>').join('');
+vFunilSelect.innerHTML='<option value="-1"'+(vFunilSelIdx<0?' selected':'')+'>Todos os funis</option>'+funis.map((f,i)=>'<option value="'+i+'"'+(i===vFunilSelIdx?' selected':'')+'>'+esc(f.nome)+'</option>').join('');
 }
 populateVendaFunilSelect();
 if(vFunilSelect)vFunilSelect.addEventListener('change',()=>{vFunilSelIdx=parseInt(vFunilSelect.value);renderVenda();});
