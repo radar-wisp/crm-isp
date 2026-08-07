@@ -413,7 +413,16 @@ document.getElementById('sumContrato').textContent=selText('contrato');
 document.getElementById('sumAssinatura').textContent=assinado?'Assinado':(contratoEnviado?'Aguardando assinatura':'—');
 document.getElementById('sumVendedor').textContent=curLead.vend||'—';
 }
-const WZ_PA_ICO={'Ligação':'📞','WhatsApp':'💬','E-mail':'📧','Tarefa':'📝','Visita':'📍','Outro':'📌'};
+/* Ícones em SVG (mesmo padrão de traço usado nos demais ícones do projeto). */
+const wzIco=(d,w)=>'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:'+(w||18)+'px;height:'+(w||18)+'px;vertical-align:-3px">'+d+'</svg>';
+const WZ_PA_ICO={
+'Ligação':wzIco('<path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/>'),
+'WhatsApp':wzIco('<path d="M21 11.5a8.4 8.4 0 0 1-9 8.5 8.9 8.9 0 0 1-4-.9L3 20l1-3.4A8.3 8.3 0 0 1 3 11.5 8.4 8.4 0 0 1 12 3a8.4 8.4 0 0 1 9 8.5z"/>'),
+'E-mail':wzIco('<rect x="2" y="4" width="20" height="16" rx="2"/><polyline points="22 6 12 13 2 6"/>'),
+'Tarefa':wzIco('<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/>'),
+'Visita':wzIco('<path d="M21 10c0 7-9 12-9 12s-9-5-9-12a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>'),
+'Outro':wzIco('<line x1="12" y1="17" x2="12" y2="22"/><path d="M9 2h6l-1 6 3 3v2H7v-2l3-3z"/>')
+};
 
 /* ===== Card da Próxima Ação =====
  * Todo o conteúdo vem de Configurações > Motor do Funil > Próximas Ações
@@ -430,14 +439,14 @@ const e=wzCurEtapa();
 const pa=RT?RT.proximaAcao(e):null;
 const pct=Math.round(step/wzTotal*100);
 const modelo=pa?RT.modeloProxAcao(pa.acao):null;
-let body='<div class="card-head"><h3>🎯 '+esc(pa?pa.acao:'Próxima ação')+'</h3></div>';
+let body='<div class="card-head"><h3>'+wzIco('<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/>',16)+' '+esc(pa?pa.acao:'Próxima ação')+'</h3></div>';
 if(!pa){
 body+='<div class="pa-empty">Nenhuma próxima ação configurada para esta etapa.</div>';
 }else{
 const tipo=modelo?modelo.tipo:'Outro';
 const prazo=pa.prazo||(modelo?modelo.prazo:'')||'—';
 const prio=modelo?modelo.prioridade:'—';
-body+='<div class="pa-item"><div class="pa-ico">'+(WZ_PA_ICO[tipo]||'📌')+'</div><div>'+
+body+='<div class="pa-item"><div class="pa-ico">'+(WZ_PA_ICO[tipo]||WZ_PA_ICO['Outro'])+'</div><div>'+
 '<div class="pa-title">'+esc(modelo&&modelo.descricao?modelo.descricao:'—')+'</div>'+
 '<div class="pa-when">Prazo: '+esc(prazo)+' · Prioridade: '+esc(prio)+'</div>'+
 '</div></div>';
@@ -528,11 +537,11 @@ const btnAbrirCadastro=document.getElementById('btnAbrirCadastro');
 document.getElementById('btnConsultaCpf').addEventListener('click',()=>{
 const v=document.getElementById('cadCpf').value.trim();
 if(v&&curLead&&v===curLead.cpf){
-consultaMsg.textContent='⚠ Cliente já cadastrado.';
+consultaMsg.innerHTML=wzIco('<path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>',14)+' Cliente já cadastrado.';
 consultaMsg.className='consulta-msg no';
 btnAbrirCadastro.style.display='inline-flex';
 }else if(v){
-consultaMsg.textContent='✔ Cliente novo.';
+consultaMsg.innerHTML=wzIco('<polyline points="20 6 9 17 4 12"/>',14)+' Cliente novo.';
 consultaMsg.className='consulta-msg ok';
 btnAbrirCadastro.style.display='none';
 }else{
